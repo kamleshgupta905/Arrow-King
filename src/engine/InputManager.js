@@ -73,7 +73,7 @@ export class InputManager {
     if (!this.board || !this.board.arrows) return null;
 
     let closestArrow = null;
-    const hitThreshold = Math.max(14, this.renderer.cellSize * 0.52);
+    const hitThreshold = Math.max(24, this.renderer.cellSize * 0.70);
     let minDistance = hitThreshold;
 
     for (const arrow of this.board.arrows) {

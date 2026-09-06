@@ -566,17 +566,27 @@ html, body {
   align-items: center;
   border: 1.5px solid var(--color-border);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s, border-color 0.15s;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
   position: relative;
   overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .level-card-flat.unlocked {
   cursor: pointer;
 }
 
-.level-card-flat.unlocked:hover, .level-card-flat.unlocked:active {
+.level-card-flat.unlocked:hover {
   transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.level-card-flat.unlocked:active {
+  transform: scale(0.96);
   border-color: var(--color-primary);
 }
 
@@ -584,6 +594,11 @@ html, body {
   opacity: 0.6;
   cursor: not-allowed;
   background: #f8fafc;
+}
+
+/* Ensure all inner elements don't block clicks/taps on the card */
+.level-card-flat * {
+  pointer-events: none;
 }
 
 .card-header-flat {
@@ -681,11 +696,11 @@ html, body {
   font-size: 0.75rem;
   letter-spacing: 0.05em;
   padding: 5px 14px;
-  cursor: pointer;
   transition: background 0.15s;
 }
 
-.card-play-btn-flat:hover {
+.level-card-flat.unlocked:hover .card-play-btn-flat,
+.level-card-flat.unlocked:active .card-play-btn-flat {
   background: var(--color-primary);
 }
 

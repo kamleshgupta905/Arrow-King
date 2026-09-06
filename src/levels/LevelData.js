@@ -29,13 +29,26 @@ export function getLevel(categoryOrNum = 'beginner', levelNum = 1) {
   num = Math.max(1, Math.min(100, num));
   const cacheKey = `${category}_${num}`;
 
+  function cloneLevel(lvl) {
+    return {
+      ...lvl,
+      arrows: lvl.arrows.map(a => ({
+        ...a,
+        points: a.points.map(p => ({ x: p.x, y: p.y })),
+        head: { ...a.head },
+        tail: { ...a.tail },
+        dirVec: { ...a.dirVec }
+      }))
+    };
+  }
+
   if (levelCache.has(cacheKey)) {
-    return JSON.parse(JSON.stringify(levelCache.get(cacheKey)));
+    return cloneLevel(levelCache.get(cacheKey));
   }
 
   const level = generateLevel(category, num);
-  levelCache.set(cacheKey, JSON.parse(JSON.stringify(level)));
-  return JSON.parse(JSON.stringify(level));
+  levelCache.set(cacheKey, level);
+  return cloneLevel(level);
 }
 
 /**

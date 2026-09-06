@@ -139,31 +139,96 @@ export class LevelSelect {
       `;
     }).join('');
 
-    // Render previews for the 20 visible levels
-    this.renderCardPreviews(rangeMeta);
+    // Cancel any previous preview rendering task
+    this.cancelPreviewRendering();
 
-    // Event listeners for unlocked cards
+    // Render previews progressively in small batches without blocking the UI thread
+    this.renderCardPreviewsProgressively(rangeMeta);
+
+    // Ultra-responsive touch-tolerant event listeners for unlocked cards
+    let hasSelected = false;
+
     gridBody.querySelectorAll('.level-card-flat.unlocked').forEach(card => {
-      card.addEventListener('click', () => {
-        const lvl = parseInt(card.dataset.level, 10);
+      let startX = 0;
+      let startY = 0;
+      let isPressed = false;
+      const lvl = parseInt(card.dataset.level, 10);
+
+      const triggerSelect = () => {
+        if (hasSelected) return;
+        hasSelected = true;
+        this.cancelPreviewRendering();
         soundManager.playTap();
         this.hide();
-        if (this.onSelectLevel) this.onSelectLevel(this.activeCategory, lvl);
+        if (this.onSelectLevel) {
+          this.onSelectLevel(this.activeCategory, lvl);
+        }
+      };
+
+      card.addEventListener('pointerdown', (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        isPressed = true;
+      });
+
+      card.addEventListener('pointerup', (e) => {
+        if (!isPressed) return;
+        isPressed = false;
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dx < 14 && dy < 14) {
+          triggerSelect();
+        }
+      });
+
+      card.addEventListener('pointercancel', () => {
+        isPressed = false;
+      });
+
+      card.addEventListener('click', () => {
+        triggerSelect();
       });
     });
   }
 
-  renderCardPreviews(levelsMeta) {
-    const canvases = this.container.querySelectorAll('.card-preview-canvas');
-    canvases.forEach(canvas => {
-      const levelNum = parseInt(canvas.dataset.level, 10);
-      try {
-        const levelData = getLevel(this.activeCategory, levelNum);
-        this.drawPreview(canvas, levelData);
-      } catch (e) {
-        console.warn('Error rendering card preview:', e);
+  cancelPreviewRendering() {
+    this.previewSessionId = (this.previewSessionId || 0) + 1;
+    if (this.previewRafId) {
+      cancelAnimationFrame(this.previewRafId);
+      this.previewRafId = null;
+    }
+  }
+
+  renderCardPreviewsProgressively(levelsMeta) {
+    const currentSession = this.previewSessionId;
+    const canvases = Array.from(this.container.querySelectorAll('.card-preview-canvas'));
+    let index = 0;
+
+    const renderNextBatch = () => {
+      if (this.previewSessionId !== currentSession) return;
+
+      const batchSize = 3;
+      const end = Math.min(index + batchSize, canvases.length);
+
+      for (; index < end; index++) {
+        const canvas = canvases[index];
+        const levelNum = parseInt(canvas.dataset.level, 10);
+        try {
+          const levelData = getLevel(this.activeCategory, levelNum);
+          this.drawPreview(canvas, levelData);
+        } catch (e) {
+          console.warn('Error rendering card preview:', e);
+        }
       }
-    });
+
+      if (index < canvases.length) {
+        this.previewRafId = requestAnimationFrame(renderNextBatch);
+      } else {
+        this.previewRafId = null;
+      }
+    };
+
+    this.previewRafId = requestAnimationFrame(renderNextBatch);
   }
 
   drawPreview(canvas, levelData) {
@@ -279,6 +344,7 @@ export class LevelSelect {
   }
 
   hide() {
+    this.cancelPreviewRendering();
     this.container.style.display = 'none';
   }
 }

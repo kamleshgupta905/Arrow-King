@@ -910,8 +910,15 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
   }
 
-  const occupiedSegments = new Set();
-  const occupiedPoints = new Set();
+  // High-performance flat Uint8Arrays for sub-millisecond point and segment lookups
+  // gridPts[y * width + x] = 1 if point occupied
+  const gridPts = new Uint8Array(width * height);
+  // hSeg[y * width + minX] = 1 if horizontal segment occupied
+  const hSeg = new Uint8Array(width * height);
+  // vSeg[minY * width + x] = 1 if vertical segment occupied
+  const vSeg = new Uint8Array(width * height);
+
+  let availablePoints = [...inShape];
   const placedArrows = [];
 
   function isRayClear(hx, hy, dir) {
@@ -920,8 +927,14 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     while (curX >= 0 && curX < width && curY >= 0 && curY < height) {
       const prevX = curX - dir.dx;
       const prevY = curY - dir.dy;
-      if (occupiedSegments.has(segKey(prevX, prevY, curX, curY))) return false;
-      if (occupiedPoints.has(ptKey(curX, curY))) return false;
+      if (dir.dx !== 0) {
+        const minX = Math.min(prevX, curX);
+        if (hSeg[curY * width + minX]) return false;
+      } else {
+        const minY = Math.min(prevY, curY);
+        if (vSeg[minY * width + curX]) return false;
+      }
+      if (gridPts[curY * width + curX]) return false;
       curX += dir.dx;
       curY += dir.dy;
     }
@@ -929,20 +942,18 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   }
 
   let attempts = 0;
-  const maxAttempts = 15000;
+  const maxAttempts = 6000;
 
   // Segment straight length allowed (1 to maxSegLen)
   const maxSegLen = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' ? 3 : 4);
   // Max turns: 1 to 3 turns (2 to 4 segments)
   const maxTurns = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' || catDef.id === 'hacker' ? 3 : 4);
 
-  while (attempts < maxAttempts && placedArrows.length < targetArrows) {
+  while (attempts < maxAttempts && placedArrows.length < targetArrows && availablePoints.length > 0) {
     attempts++;
 
-    const availablePoints = inShape.filter(p => !occupiedPoints.has(ptKey(p.x, p.y)));
-    if (availablePoints.length === 0) break;
-
-    const startPt = availablePoints[Math.floor(rng() * availablePoints.length)];
+    const startIdx = Math.floor(rng() * availablePoints.length);
+    const startPt = availablePoints[startIdx];
     const path = [{ x: startPt.x, y: startPt.y }];
     let curPt = { ...startPt };
 
@@ -966,8 +977,12 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
         const nx = curPt.x + d.dx;
         const ny = curPt.y + d.dy;
         if (!mask(nx, ny, width, height)) return false;
-        if (occupiedPoints.has(ptKey(nx, ny))) return false;
-        if (occupiedSegments.has(segKey(curPt.x, curPt.y, nx, ny))) return false;
+        if (gridPts[ny * width + nx]) return false;
+        if (d.dx !== 0) {
+          if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) return false;
+        } else {
+          if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) return false;
+        }
         return true;
       });
 
@@ -984,8 +999,12 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
         const nx = curPt.x + chosenDir.dx;
         const ny = curPt.y + chosenDir.dy;
         if (!mask(nx, ny, width, height)) break;
-        if (occupiedPoints.has(ptKey(nx, ny))) break;
-        if (occupiedSegments.has(segKey(curPt.x, curPt.y, nx, ny))) break;
+        if (gridPts[ny * width + nx]) break;
+        if (chosenDir.dx !== 0) {
+          if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) break;
+        } else {
+          if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) break;
+        }
 
         curPt = { x: nx, y: ny };
         path.push(curPt);
@@ -1020,13 +1039,21 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     };
 
     for (let i = 0; i < path.length; i++) {
-      occupiedPoints.add(ptKey(path[i].x, path[i].y));
+      gridPts[path[i].y * width + path[i].x] = 1;
       if (i > 0) {
-        occupiedSegments.add(segKey(path[i - 1].x, path[i - 1].y, path[i].x, path[i].y));
+        const p1 = path[i - 1];
+        const p2 = path[i];
+        if (p1.y === p2.y) {
+          hSeg[p1.y * width + Math.min(p1.x, p2.x)] = 1;
+        } else {
+          vSeg[Math.min(p1.y, p2.y) * width + p1.x] = 1;
+        }
       }
     }
 
     placedArrows.push(arrow);
+    // Remove occupied points from availablePoints ONLY when an arrow is placed
+    availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
   }
 
   // Reverse so that initially unblocked arrows can escape first
