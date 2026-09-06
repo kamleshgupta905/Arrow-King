@@ -1,0 +1,6 @@
+{
+  "appId": "com.arrowking.game",
+  "appName": "Arrow King",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

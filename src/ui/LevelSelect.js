@@ -1,0 +1,284 @@
+/**
+ * LevelSelect.js
+ * Clean, flat, human-crafted level selection screen.
+ * Supports all 6 categories (Beginner, Intermediate, Advanced, Expert, Master, Hacker)
+ * with 100 levels each (600 levels total).
+ * Zero gradients, flat solid surfaces, crisp typography, and responsive sub-range navigation.
+ */
+
+import { CATEGORIES, getCategoryLevelsMetadata, getLevel } from '../levels/LevelData.js';
+import { soundManager } from '../audio/SoundManager.js';
+
+export class LevelSelect {
+  constructor(container, onSelectLevelCallback, onBackCallback) {
+    this.container = container;
+    this.onSelectLevel = onSelectLevelCallback;
+    this.onBack = onBackCallback;
+
+    this.activeCategory = 'beginner';
+    this.activeRangeIndex = 0; // 0: 1-20, 1: 21-40, 2: 41-60, 3: 61-80, 4: 81-100
+    this.ranges = [
+      [1, 20],
+      [21, 40],
+      [41, 60],
+      [61, 80],
+      [81, 100]
+    ];
+  }
+
+  render(progressData) {
+    this.progressData = progressData || {};
+    const unlockedMap = this.progressData.unlocked || {};
+    const starsMap = this.progressData.stars || {};
+
+    const totalStars = this.calculateTotalStars(starsMap);
+
+    this.container.innerHTML = `
+      <div class="level-select-screen flat-style">
+        <header class="level-select-header">
+          <button id="btn-ls-back" class="icon-btn-flat" aria-label="Back">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="header-center">
+            <h2 class="ls-title">SELECT LEVEL</h2>
+            <div class="ls-progress-badge">
+              <span class="star-icon">★</span>
+              <span>${totalStars} / 1800 Stars</span>
+            </div>
+          </div>
+          <div style="width: 42px;"></div>
+        </header>
+
+        <!-- Category Selector Tabs -->
+        <div class="category-tabs-bar" id="category-tabs-bar">
+          ${CATEGORIES.map(cat => `
+            <button class="category-tab-btn ${cat.id === this.activeCategory ? 'active' : ''} ${cat.id === 'hacker' ? 'hacker-tab' : ''}" data-cat="${cat.id}">
+              <span class="cat-label">${cat.id === 'hacker' ? '⚡ Hacker' : cat.name}</span>
+              <span class="cat-count">100 Lvl</span>
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Range Sub-Tabs (1-20, 21-40, 41-60, 61-80, 81-100) -->
+        <div class="range-tabs-bar" id="range-tabs-bar">
+          ${this.ranges.map((r, idx) => `
+            <button class="range-tab-btn ${idx === this.activeRangeIndex ? 'active' : ''}" data-range="${idx}">
+              ${r[0]} - ${r[1]}
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Levels Cards Grid Container -->
+        <div class="levels-grid-container">
+          <div class="levels-cards-grid" id="levels-grid-body">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.populateGrid();
+    this.bindEvents();
+  }
+
+  populateGrid() {
+    const gridBody = this.container.querySelector('#levels-grid-body');
+    if (!gridBody) return;
+
+    const [startLvl, endLvl] = this.ranges[this.activeRangeIndex];
+    const catId = this.activeCategory;
+    const unlockedMap = this.progressData.unlocked || {};
+    const maxUnlocked = unlockedMap[catId] || (catId === 'beginner' ? (this.progressData.maxUnlockedLevel || 1) : 1);
+    const starsMap = this.progressData.stars || {};
+
+    const allMeta = getCategoryLevelsMetadata(catId);
+    const rangeMeta = allMeta.slice(startLvl - 1, endLvl);
+
+    gridBody.innerHTML = rangeMeta.map(lvl => {
+      const isUnlocked = lvl.levelNumber <= maxUnlocked;
+      const starKey = `${catId}_${lvl.levelNumber}`;
+      // Also fallback to legacy single-number stars if beginner
+      const stars = starsMap[starKey] !== undefined ? starsMap[starKey] : (catId === 'beginner' ? (starsMap[lvl.levelNumber] || 0) : 0);
+      const isHacker = catId === 'hacker';
+
+      return `
+        <div class="level-card-flat ${isUnlocked ? 'unlocked' : 'locked'} ${isHacker ? 'hacker-card' : ''}" data-level="${lvl.levelNumber}">
+          <div class="card-header-flat">
+            <span class="card-shape-name">${lvl.shapeName}</span>
+            <span class="card-level-pill">#${lvl.levelNumber}</span>
+          </div>
+
+          ${isHacker ? `<div class="card-timed-tag">⏱ TIMED</div>` : ''}
+
+          <div class="card-preview-flat">
+            <canvas class="card-preview-canvas" width="130" height="130" data-level="${lvl.levelNumber}"></canvas>
+            ${!isUnlocked ? `
+              <div class="card-locked-overlay">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#64748b" stroke-width="2.4">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>LOCKED</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="card-footer-flat">
+            <div class="card-stars-flat">
+              <span class="star ${stars >= 1 ? 'earned' : ''}">★</span>
+              <span class="star ${stars >= 2 ? 'earned' : ''}">★</span>
+              <span class="star ${stars >= 3 ? 'earned' : ''}">★</span>
+            </div>
+            ${isUnlocked ? `
+              <button class="card-play-btn-flat">PLAY</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Render previews for the 20 visible levels
+    this.renderCardPreviews(rangeMeta);
+
+    // Event listeners for unlocked cards
+    gridBody.querySelectorAll('.level-card-flat.unlocked').forEach(card => {
+      card.addEventListener('click', () => {
+        const lvl = parseInt(card.dataset.level, 10);
+        soundManager.playTap();
+        this.hide();
+        if (this.onSelectLevel) this.onSelectLevel(this.activeCategory, lvl);
+      });
+    });
+  }
+
+  renderCardPreviews(levelsMeta) {
+    const canvases = this.container.querySelectorAll('.card-preview-canvas');
+    canvases.forEach(canvas => {
+      const levelNum = parseInt(canvas.dataset.level, 10);
+      try {
+        const levelData = getLevel(this.activeCategory, levelNum);
+        this.drawPreview(canvas, levelData);
+      } catch (e) {
+        console.warn('Error rendering card preview:', e);
+      }
+    });
+  }
+
+  drawPreview(canvas, levelData) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+
+    const boardW = levelData.width;
+    const boardH = levelData.height;
+    const padding = 10;
+    const cellSize = Math.min((w - padding * 2) / boardW, (h - padding * 2) / boardH);
+    const offsetX = (w - boardW * cellSize) / 2;
+    const offsetY = (h - boardH * cellSize) / 2;
+
+    // Draw subtle grid dots
+    ctx.fillStyle = '#e2e8f0';
+    for (let y = 1; y < boardH; y += 2) {
+      for (let x = 1; x < boardW; x += 2) {
+        ctx.beginPath();
+        ctx.arc(offsetX + x * cellSize, offsetY + y * cellSize, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Draw solid arrow lines
+    const arrowColor = this.activeCategory === 'hacker' ? '#0f172a' : '#1e293b';
+    ctx.strokeStyle = arrowColor;
+    ctx.fillStyle = arrowColor;
+    ctx.lineWidth = Math.max(2.2, cellSize * 0.20);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    for (const arrow of levelData.arrows) {
+      if (arrow.points.length >= 2) {
+        ctx.beginPath();
+        const p0 = arrow.points[0];
+        ctx.moveTo(offsetX + p0.x * cellSize, offsetY + p0.y * cellSize);
+        for (let i = 1; i < arrow.points.length; i++) {
+          const pi = arrow.points[i];
+          ctx.lineTo(offsetX + pi.x * cellSize, offsetY + pi.y * cellSize);
+        }
+        ctx.stroke();
+
+        // Arrowhead
+        const head = arrow.points[arrow.points.length - 1];
+        const hx = offsetX + head.x * cellSize;
+        const hy = offsetY + head.y * cellSize;
+        const headSize = Math.max(4.5, cellSize * 0.40);
+
+        ctx.save();
+        ctx.translate(hx, hy);
+        if (arrow.dir === 'DOWN') ctx.rotate(Math.PI / 2);
+        else if (arrow.dir === 'LEFT') ctx.rotate(Math.PI);
+        else if (arrow.dir === 'UP') ctx.rotate(-Math.PI / 2);
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-headSize, -headSize * 0.46);
+        ctx.lineTo(-headSize * 0.75, 0);
+        ctx.lineTo(-headSize, headSize * 0.46);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  bindEvents() {
+    const backBtn = this.container.querySelector('#btn-ls-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        soundManager.playTap();
+        this.hide();
+        if (this.onBack) this.onBack();
+      });
+    }
+
+    // Category tabs
+    const catBtns = this.container.querySelectorAll('.category-tab-btn');
+    catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        catBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeCategory = btn.dataset.cat;
+        soundManager.playTap();
+        this.populateGrid();
+      });
+    });
+
+    // Range tabs
+    const rangeBtns = this.container.querySelectorAll('.range-tab-btn');
+    rangeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        rangeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeRangeIndex = parseInt(btn.dataset.range, 10);
+        soundManager.playTap();
+        this.populateGrid();
+      });
+    });
+  }
+
+  calculateTotalStars(starsMap) {
+    return Object.values(starsMap).reduce((sum, s) => sum + (typeof s === 'number' ? s : 0), 0);
+  }
+
+  show(progressData) {
+    this.render(progressData);
+    this.container.style.display = 'block';
+  }
+
+  hide() {
+    this.container.style.display = 'none';
+  }
+}
