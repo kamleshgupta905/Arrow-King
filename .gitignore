@@ -18,4 +18,5 @@ android/.idea/
 Thumbs.db
 *.log
 .vscode/
+scratch/
 .idea/

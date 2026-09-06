@@ -16,12 +16,12 @@ function pseudoRandom(seed) {
 }
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 14, maxArrows: 20 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 22, maxArrows: 30 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 30, maxArrows: 38 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 38, maxArrows: 46 },
-  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 44, maxArrows: 54 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 24, maxArrows: 36, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 20, maxArrows: 36 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 32, maxArrows: 52 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 46, maxArrows: 72 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 62, maxArrows: 92 },
+  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 78, maxArrows: 118 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 35, maxArrows: 62, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -863,6 +863,8 @@ function getTurnDirection(d1, d2) {
 
 /**
  * Generates an Arrow Maze guaranteed 100% solvable with ZERO self-looping arrows.
+ * High complexity & density: multi-cell straight runs, category-scaled labyrinth grids,
+ * and deep dependency chains.
  */
 export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const catDef = CATEGORIES.find(c => c.id === category) || CATEGORIES[0];
@@ -872,15 +874,31 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const shapeIndex = (num - 1) % SHAPES_LIST.length;
   const baseShape = SHAPES_LIST[shapeIndex];
 
+  // Category dimension scaling factor
+  const catScale = {
+    beginner: 1.0,
+    intermediate: 1.15,
+    advanced: 1.3,
+    expert: 1.45,
+    master: 1.6,
+    hacker: 1.25
+  }[catDef.id] || 1.0;
+
+  // Progressive scaling across levels 1..100 (+20% gradual growth)
+  const progScale = 1.0 + ((num - 1) / 99) * 0.2;
+  const totalScale = catScale * progScale;
+
+  const width = Math.round(baseShape.width * totalScale);
+  const height = Math.round(baseShape.height * totalScale);
+  const mask = baseShape.mask;
+
   // Target arrows interpolated across category range
   const targetArrows = Math.round(
-    catDef.minArrows + (num / 100) * (catDef.maxArrows - catDef.minArrows)
+    catDef.minArrows + ((num - 1) / 99) * (catDef.maxArrows - catDef.minArrows)
   );
 
   const seed = (catDef.id.charCodeAt(0) * 10007) + (num * 1013) + (shapeIndex * 73);
   const rng = pseudoRandom(seed);
-
-  const { width, height, mask } = baseShape;
 
   // Collect points inside shape mask
   const inShape = [];
@@ -911,7 +929,12 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   }
 
   let attempts = 0;
-  const maxAttempts = 6500;
+  const maxAttempts = 15000;
+
+  // Segment straight length allowed (1 to maxSegLen)
+  const maxSegLen = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' ? 3 : 4);
+  // Max turns: 1 to 3 turns (2 to 4 segments)
+  const maxTurns = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' || catDef.id === 'hacker' ? 3 : 4);
 
   while (attempts < maxAttempts && placedArrows.length < targetArrows) {
     attempts++;
@@ -923,13 +946,11 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     const path = [{ x: startPt.x, y: startPt.y }];
     let curPt = { ...startPt };
 
-    // Max 1 or 2 turns (total 2 to 3 segments): Strictly prevents square/loop boxes!
-    const maxSteps = 2 + Math.floor(rng() * 2); // 2 or 3 segments
-
+    const numSegments = 1 + Math.floor(rng() * maxTurns);
     let lastDir = null;
     let lastTurnRot = 0; // +1 or -1
 
-    for (let step = 0; step < maxSteps; step++) {
+    for (let seg = 0; seg < numSegments; seg++) {
       const possibleDirs = DIRS.filter(d => {
         // Can never go backwards
         if (lastDir && d.dx === -lastDir.dx && d.dy === -lastDir.dy) return false;
@@ -957,8 +978,19 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
         lastTurnRot = getTurnDirection(lastDir, chosenDir);
       }
 
-      curPt = { x: curPt.x + chosenDir.dx, y: curPt.y + chosenDir.dy };
-      path.push(curPt);
+      // Multi-cell straight run: gives arrows realistic length and creates labyrinth corridors
+      const runLength = 1 + Math.floor(rng() * maxSegLen);
+      for (let s = 0; s < runLength; s++) {
+        const nx = curPt.x + chosenDir.dx;
+        const ny = curPt.y + chosenDir.dy;
+        if (!mask(nx, ny, width, height)) break;
+        if (occupiedPoints.has(ptKey(nx, ny))) break;
+        if (occupiedSegments.has(segKey(curPt.x, curPt.y, nx, ny))) break;
+
+        curPt = { x: nx, y: ny };
+        path.push(curPt);
+      }
+
       lastDir = chosenDir;
     }
 
@@ -1000,8 +1032,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   // Reverse so that initially unblocked arrows can escape first
   placedArrows.reverse();
 
-  // Time limit for Hacker mode: ~1.5s per arrow, min 25s, max 60s
-  const timeLimit = catDef.isTimed ? Math.max(25, Math.min(60, Math.round(placedArrows.length * 1.5))) : 0;
+  // Time limit for Hacker mode: ~1.6s per arrow, min 30s, max 90s
+  const timeLimit = catDef.isTimed ? Math.max(30, Math.min(90, Math.round(placedArrows.length * 1.6))) : 0;
 
   return {
     category: catDef.id,
