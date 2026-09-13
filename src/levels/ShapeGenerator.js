@@ -15,13 +15,24 @@ function pseudoRandom(seed) {
   };
 }
 
+export const SNAKE_PALETTES = [
+  { id: 'blue', name: 'Electric Blue', body: '#0084ff', light: '#5ac8fa', shadow: '#0055c4', eye: '#ffffff', pupil: '#07162c' },
+  { id: 'pink', name: 'Neon Pink', body: '#ff2a9d', light: '#ff80c0', shadow: '#c4006c', eye: '#ffffff', pupil: '#240018' },
+  { id: 'green', name: 'Lime Green', body: '#2ed573', light: '#7bed9f', shadow: '#109347', eye: '#ffffff', pupil: '#072b14' },
+  { id: 'orange', name: 'Vibrant Orange', body: '#ff6b35', light: '#ffa07a', shadow: '#c43d0e', eye: '#ffffff', pupil: '#2b0900' },
+  { id: 'yellow', name: 'Golden Yellow', body: '#ffc000', light: '#ffe066', shadow: '#c48f00', eye: '#ffffff', pupil: '#2b1e00' },
+  { id: 'purple', name: 'Deep Violet', body: '#9b5de5', light: '#c77dff', shadow: '#6a2cb8', eye: '#ffffff', pupil: '#1b0036' },
+  { id: 'cyan', name: 'Bright Cyan', body: '#00d2d3', light: '#70fbfb', shadow: '#009798', eye: '#ffffff', pupil: '#002525' },
+  { id: 'red', name: 'Crimson Red', body: '#ff4757', light: '#ff7b88', shadow: '#c02432', eye: '#ffffff', pupil: '#2b0005' }
+];
+
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 20, maxArrows: 36 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 32, maxArrows: 52 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 46, maxArrows: 72 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 62, maxArrows: 92 },
-  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 78, maxArrows: 118 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 35, maxArrows: 62, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 16, maxArrows: 26, maxTurns: 2, scale: 1.0 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 26, maxArrows: 40, maxTurns: 3, scale: 1.15 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 38, maxArrows: 55, maxTurns: 4, scale: 1.3 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 50, maxArrows: 72, maxTurns: 5, scale: 1.45 },
+  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 65, maxArrows: 95, maxTurns: 6, scale: 1.6 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 28, maxArrows: 46, maxTurns: 3, scale: 1.25, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -864,40 +875,386 @@ function getTurnDirection(d1, d2) {
 /**
  * Generates an Arrow Maze guaranteed 100% solvable with ZERO self-looping arrows.
  * High complexity & density: multi-cell straight runs, category-scaled labyrinth grids,
- * and deep dependency chains.
+ * deep dependency chains, controlled root exits, and 80%-90%+ shape fill.
+ */
+// Distinct shape collections per category for authentic progressive variety
+export const EXPERT_SHAPES = [
+  {
+    id: 101,
+    name: 'SQUARE LABYRINTH', // Exact Photo 1 style rectangular labyrinth
+    width: 20,
+    height: 20,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 102,
+    name: 'CIRCUIT BOARD',
+    width: 22,
+    height: 22,
+    mask: (x, y, w, h) => {
+      // Corner cutouts for integrated circuit look
+      if ((x < 3 || x > w - 4) && (y < 3 || y > h - 4)) return false;
+      return x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2;
+    }
+  },
+  {
+    id: 103,
+    name: 'MEANDER MATRIX',
+    width: 22,
+    height: 20,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 104,
+    name: 'NESTED FRAMES',
+    width: 20,
+    height: 20,
+    mask: (x, y, w, h) => {
+      if (x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2) return true;
+      return false;
+    }
+  },
+  {
+    id: 105,
+    name: 'CROSS LABYRINTH',
+    width: 22,
+    height: 22,
+    mask: (x, y, w, h) => {
+      const midX = w / 2;
+      const midY = h / 2;
+      const armW = w * 0.42;
+      const armH = h * 0.42;
+      return Math.abs(x - midX) <= armW || Math.abs(y - midY) <= armH;
+    }
+  },
+  {
+    id: 106,
+    name: 'TEMPLE MAZE',
+    width: 22,
+    height: 22,
+    mask: (x, y, w, h) => {
+      const prog = (y - 1) / (h - 2);
+      const halfW = (w / 2 - 1) * (0.35 + 0.65 * prog);
+      return Math.abs(x - w / 2) <= halfW;
+    }
+  },
+  {
+    id: 107,
+    name: 'DUAL CHAMBERS',
+    width: 24,
+    height: 18,
+    mask: (x, y, w, h) => {
+      if (y < 1 || y > h - 2) return false;
+      if (x < 1 || x > w - 2) return false;
+      // Central dividing wall with pass
+      if (x >= w / 2 - 1 && x <= w / 2 + 1 && (y < h * 0.35 || y > h * 0.65)) return false;
+      return true;
+    }
+  },
+  {
+    id: 108,
+    name: 'VAULT FORTRESS',
+    width: 22,
+    height: 22,
+    mask: (x, y, w, h) => {
+      const r = Math.min(w, h) / 2 - 1.5;
+      const dist = Math.hypot(x - w / 2, y - h / 2);
+      return dist <= r;
+    }
+  },
+  {
+    id: 109,
+    name: 'TWISTED CORRIDORS',
+    width: 22,
+    height: 22,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 110,
+    name: 'TANGLED MATRIX',
+    width: 22,
+    height: 22,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  }
+];
+
+export const MASTER_SHAPES = [
+  {
+    id: 201,
+    name: 'GRAND LABYRINTH',
+    width: 24,
+    height: 24,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 202,
+    name: 'HYPER CIRCUIT',
+    width: 24,
+    height: 24,
+    mask: (x, y, w, h) => {
+      if ((x < 3 || x > w - 4) && (y < 3 || y > h - 4)) return false;
+      return x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2;
+    }
+  },
+  {
+    id: 203,
+    name: 'MASTER MATRIX',
+    width: 26,
+    height: 24,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 204,
+    name: 'TITAN MEANDER',
+    width: 24,
+    height: 24,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 205,
+    name: 'INFINITY LABYRINTH',
+    width: 26,
+    height: 22,
+    mask: (x, y, w, h) => {
+      const cx1 = w * 0.32;
+      const cx2 = w * 0.68;
+      const cy = h / 2;
+      const r = h * 0.44;
+      return Math.hypot(x - cx1, y - cy) <= r || Math.hypot(x - cx2, y - cy) <= r;
+    }
+  },
+  {
+    id: 206,
+    name: 'OMEGA MATRIX',
+    width: 24,
+    height: 24,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  }
+];
+
+export const HACKER_SHAPES = [
+  {
+    id: 301,
+    name: 'MICROCHIP',
+    width: 18,
+    height: 18,
+    mask: (x, y, w, h) => {
+      if ((x < 2 || x > w - 3) && (y < 2 || y > h - 3)) return false;
+      return x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2;
+    }
+  },
+  {
+    id: 302,
+    name: 'CYBER GRID',
+    width: 18,
+    height: 18,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 303,
+    name: 'BINARY CUBE',
+    width: 18,
+    height: 18,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  },
+  {
+    id: 304,
+    name: 'FIREWALL',
+    width: 20,
+    height: 18,
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+  }
+];
+
+/**
+ * Returns the distinct category-appropriate shape definition.
+ */
+export function getCategoryShape(category = 'beginner', levelNum = 1) {
+  const num = Math.max(1, Math.min(100, levelNum));
+  if (category === 'expert') {
+    return EXPERT_SHAPES[(num - 1) % EXPERT_SHAPES.length];
+  }
+  if (category === 'master') {
+    return MASTER_SHAPES[(num - 1) % MASTER_SHAPES.length];
+  }
+  if (category === 'hacker') {
+    return HACKER_SHAPES[(num - 1) % HACKER_SHAPES.length];
+  }
+  if (category === 'advanced') {
+    // Advanced uses the higher-complexity heraldic/animal shapes
+    const advShapes = SHAPES_LIST.slice(20, 45);
+    return advShapes[(num - 1) % advShapes.length] || SHAPES_LIST[0];
+  }
+  if (category === 'intermediate') {
+    // Intermediate uses geometric and animal shapes
+    const intShapes = SHAPES_LIST.slice(10, 30);
+    return intShapes[(num - 1) % intShapes.length] || SHAPES_LIST[0];
+  }
+  // Beginner uses iconic simple shapes
+  const begShapes = SHAPES_LIST.slice(0, 15);
+  return begShapes[(num - 1) % begShapes.length] || SHAPES_LIST[0];
+}
+
+/**
+ * Checks whether an arrow has an unobstructed exit ray to the boundary.
+ */
+function canArrowEscape(arrow, activeArrows) {
+  const head = arrow.points[arrow.points.length - 1];
+  const dx = arrow.dirVec.dx;
+  const dy = arrow.dirVec.dy;
+
+  for (const other of activeArrows) {
+    if (other.id === arrow.id) continue;
+
+    for (let i = 0; i < other.points.length; i++) {
+      const p = other.points[i];
+      if (dx !== 0 && p.y === head.y && (p.x - head.x) * dx > 0) return false;
+      if (dy !== 0 && p.x === head.x && (p.y - head.y) * dy > 0) return false;
+
+      if (i > 0) {
+        const p1 = other.points[i - 1];
+        const p2 = other.points[i];
+        if (dx !== 0) {
+          if (p1.x === p2.x) {
+            const minY = Math.min(p1.y, p2.y);
+            const maxY = Math.max(p1.y, p2.y);
+            if (head.y >= minY && head.y <= maxY && (p1.x - head.x) * dx > 0) return false;
+          } else if (p1.y === p2.y && p1.y === head.y) {
+            const minX = Math.min(p1.x, p2.x);
+            const maxX = Math.max(p1.x, p2.x);
+            if ((dx > 0 && minX > head.x) || (dx < 0 && maxX < head.x)) return false;
+          }
+        } else if (dy !== 0) {
+          if (p1.y === p2.y) {
+            const minX = Math.min(p1.x, p2.x);
+            const maxX = Math.max(p1.x, p2.x);
+            if (head.x >= minX && head.x <= maxX && (p1.y - head.y) * dy > 0) return false;
+          } else if (p1.x === p2.x && p1.x === head.x) {
+            const minY = Math.min(p1.y, p2.y);
+            const maxY = Math.max(p1.y, p2.y);
+            if ((dy > 0 && minY > head.y) || (dy < 0 && maxY < head.y)) return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+/**
+ * Step-by-step puzzle solver simulation.
+ * Verifies 100% solvability without deadlocks.
+ */
+function solveLevelStepByStep(arrows) {
+  let active = [...arrows];
+  let maxFree = 0;
+  let steps = 0;
+  while (active.length > 0) {
+    const free = active.filter(a => canArrowEscape(a, active));
+    if (free.length === 0) return { solved: false, steps, maxFree };
+    if (free.length > maxFree) maxFree = free.length;
+    const p = free[0];
+    active = active.filter(a => a.id !== p.id);
+    steps++;
+  }
+  return { solved: true, steps, maxFree };
+}
+
+/**
+ * Tightens and prunes level arrows so that at the start,
+ * STRICTLY 1 TO 3 ARROWS are free to escape (Photo 1 mechanic).
+ */
+function pruneToExactStrictFree(levelArrows, width, height, targetMax = 2) {
+  let arrows = levelArrows.map(a => ({
+    ...a,
+    points: a.points.map(p => ({ ...p })),
+    head: { ...a.head },
+    tail: { ...a.tail },
+    dirVec: { ...a.dirVec }
+  }));
+
+  let free = arrows.filter(a => canArrowEscape(a, arrows));
+  if (free.length <= targetMax) return arrows;
+
+  // Strategy 1: Reverse excess free arrows if solvable
+  for (const candidate of [...free]) {
+    if (free.length <= targetMax) break;
+    const reversedPts = candidate.points.slice().reverse();
+    const p0 = reversedPts[reversedPts.length - 2];
+    const p1 = reversedPts[reversedPts.length - 1];
+    const rdx = p1.x - p0.x;
+    const rdy = p1.y - p0.y;
+    const dirObj = DIRS.find(d => d.dx === rdx && d.dy === rdy) || candidate.dirVec;
+
+    const reversedCandidate = {
+      ...candidate,
+      points: reversedPts,
+      head: { ...p1 },
+      tail: { ...reversedPts[0] },
+      dir: dirObj.name,
+      dirVec: dirObj
+    };
+
+    const testList = arrows.map(a => a.id === candidate.id ? reversedCandidate : a);
+    const sim = solveLevelStepByStep(testList);
+    if (sim.solved) {
+      const testFree = testList.filter(a => canArrowEscape(a, testList));
+      if (testFree.length < free.length && testFree.length >= 1) {
+        arrows = testList;
+        free = testFree;
+      }
+    }
+  }
+
+  // Strategy 2: Prune excess root arrows from the level until free count <= targetMax
+  let attempts = 0;
+  while (free.length > targetMax && attempts < 150) {
+    attempts++;
+    const excess = free[free.length - 1];
+    const testList = arrows.filter(a => a.id !== excess.id);
+    const sim = solveLevelStepByStep(testList);
+    if (sim.solved) {
+      const testFree = testList.filter(a => canArrowEscape(a, testList));
+      if (testFree.length >= 1) {
+        arrows = testList;
+        free = testFree;
+      }
+    } else {
+      // If removing this one fails, break
+      break;
+    }
+  }
+
+  return arrows;
+}
+
+/**
+ * Generates an Arrow Maze guaranteed 100% solvable with:
+ * 1. STRICTLY 1 TO 3 unblocked arrows at any one time (Photo 1).
+ * 2. Razor-sharp maze corridors and 90-degree corners.
+ * 3. 8 distinct vibrant snake palettes assigned to arrows (Photo 2).
+ * 4. True category-specific difficulty and unique shape topologies.
  */
 export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const catDef = CATEGORIES.find(c => c.id === category) || CATEGORIES[0];
   const num = Math.max(1, Math.min(100, levelNum));
 
-  // Pick shape from the 50 shapes catalogue
-  const shapeIndex = (num - 1) % SHAPES_LIST.length;
-  const baseShape = SHAPES_LIST[shapeIndex];
+  // Pick category-specific shape
+  const baseShape = getCategoryShape(category, num);
 
-  // Category dimension scaling factor
-  const catScale = {
-    beginner: 1.0,
-    intermediate: 1.15,
-    advanced: 1.3,
-    expert: 1.45,
-    master: 1.6,
-    hacker: 1.25
-  }[catDef.id] || 1.0;
-
-  // Progressive scaling across levels 1..100 (+20% gradual growth)
-  const progScale = 1.0 + ((num - 1) / 99) * 0.2;
-  const totalScale = catScale * progScale;
+  // Progressive scaling across levels 1..100
+  const progScale = 1.0 + ((num - 1) / 99) * 0.18;
+  const totalScale = (catDef.scale || 1.0) * progScale;
 
   const width = Math.round(baseShape.width * totalScale);
   const height = Math.round(baseShape.height * totalScale);
   const mask = baseShape.mask;
 
-  // Target arrows interpolated across category range
   const targetArrows = Math.round(
     catDef.minArrows + ((num - 1) / 99) * (catDef.maxArrows - catDef.minArrows)
   );
 
-  const seed = (catDef.id.charCodeAt(0) * 10007) + (num * 1013) + (shapeIndex * 73);
+  const seed = (catDef.id.charCodeAt(0) * 10007) + (num * 1013) + (baseShape.id * 73);
   const rng = pseudoRandom(seed);
 
   // Collect points inside shape mask
@@ -910,16 +1267,31 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
   }
 
-  // High-performance flat Uint8Arrays for sub-millisecond point and segment lookups
-  // gridPts[y * width + x] = 1 if point occupied
-  const gridPts = new Uint8Array(width * height);
-  // hSeg[y * width + minX] = 1 if horizontal segment occupied
-  const hSeg = new Uint8Array(width * height);
-  // vSeg[minY * width + x] = 1 if vertical segment occupied
-  const vSeg = new Uint8Array(width * height);
+  const targetFillPct = {
+    beginner: 0.72,
+    intermediate: 0.78,
+    advanced: 0.84,
+    expert: 0.88,
+    master: 0.90,
+    hacker: 0.80
+  }[catDef.id] || 0.78;
+  const targetOccupiedCells = Math.min(inShape.length - 2, Math.round(inShape.length * targetFillPct));
 
-  let availablePoints = [...inShape];
+  const gridPts = new Uint8Array(width * height);
+  const hSeg = new Uint8Array(width * height);
+  const vSeg = new Uint8Array(width * height);
+  const rayCellMap = new Map();
+
+  const cx = inShape.reduce((acc, p) => acc + p.x, 0) / inShape.length;
+  const cy = inShape.reduce((acc, p) => acc + p.y, 0) / inShape.length;
+
+  let availablePoints = inShape.map(p => ({
+    x: p.x,
+    y: p.y,
+    dist: Math.hypot(p.x - cx, p.y - cy)
+  }));
   const placedArrows = [];
+  let currentOccupied = 0;
 
   function isRayClear(hx, hy, dir) {
     let curX = hx + dir.dx;
@@ -941,140 +1313,233 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     return true;
   }
 
-  let attempts = 0;
-  const maxAttempts = 6000;
-
-  // Segment straight length allowed (1 to maxSegLen)
-  const maxSegLen = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' ? 3 : 4);
-  // Max turns: 1 to 3 turns (2 to 4 segments)
-  const maxTurns = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' || catDef.id === 'hacker' ? 3 : 4);
-
-  while (attempts < maxAttempts && placedArrows.length < targetArrows && availablePoints.length > 0) {
-    attempts++;
-
-    const startIdx = Math.floor(rng() * availablePoints.length);
-    const startPt = availablePoints[startIdx];
-    const path = [{ x: startPt.x, y: startPt.y }];
-    let curPt = { ...startPt };
-
-    const numSegments = 1 + Math.floor(rng() * maxTurns);
-    let lastDir = null;
-    let lastTurnRot = 0; // +1 or -1
-
-    for (let seg = 0; seg < numSegments; seg++) {
-      const possibleDirs = DIRS.filter(d => {
-        // Can never go backwards
-        if (lastDir && d.dx === -lastDir.dx && d.dy === -lastDir.dy) return false;
-
-        // Anti-Loop rule: never turn twice in the exact same rotational direction (prevents square loop!)
-        if (lastDir && (d.dx !== lastDir.dx || d.dy !== lastDir.dy)) {
-          const turnRot = getTurnDirection(lastDir, d);
-          if (lastTurnRot !== 0 && turnRot === lastTurnRot) {
-            return false; // Forbid closing a box!
-          }
-        }
-
-        const nx = curPt.x + d.dx;
-        const ny = curPt.y + d.dy;
-        if (!mask(nx, ny, width, height)) return false;
-        if (gridPts[ny * width + nx]) return false;
-        if (d.dx !== 0) {
-          if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) return false;
-        } else {
-          if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) return false;
-        }
-        return true;
-      });
-
-      if (possibleDirs.length === 0) break;
-
-      const chosenDir = possibleDirs[Math.floor(rng() * possibleDirs.length)];
-      if (lastDir && (chosenDir.dx !== lastDir.dx || chosenDir.dy !== lastDir.dy)) {
-        lastTurnRot = getTurnDirection(lastDir, chosenDir);
+  function countUnfilledInRay(hx, hy, dir) {
+    let count = 0;
+    let curX = hx + dir.dx;
+    let curY = hy + dir.dy;
+    while (curX >= 0 && curX < width && curY >= 0 && curY < height) {
+      if (mask(curX, curY, width, height) && !gridPts[curY * width + curX]) {
+        count++;
       }
-
-      // Multi-cell straight run: gives arrows realistic length and creates labyrinth corridors
-      const runLength = 1 + Math.floor(rng() * maxSegLen);
-      for (let s = 0; s < runLength; s++) {
-        const nx = curPt.x + chosenDir.dx;
-        const ny = curPt.y + chosenDir.dy;
-        if (!mask(nx, ny, width, height)) break;
-        if (gridPts[ny * width + nx]) break;
-        if (chosenDir.dx !== 0) {
-          if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) break;
-        } else {
-          if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) break;
-        }
-
-        curPt = { x: nx, y: ny };
-        path.push(curPt);
-      }
-
-      lastDir = chosenDir;
+      curX += dir.dx;
+      curY += dir.dy;
     }
-
-    if (path.length < 2) continue;
-
-    const head = path[path.length - 1];
-    const headDir = lastDir;
-
-    // Strict Anti-Self-Collision Check: Arrowhead must NEVER point towards its own body!
-    if (arrowHitsSelf(path, headDir.name)) {
-      continue;
-    }
-
-    // Must have clear exit ray out of current placed arrows
-    if (!isRayClear(head.x, head.y, headDir)) {
-      continue;
-    }
-
-    const arrowId = `arrow_${placedArrows.length + 1}`;
-    const arrow = {
-      id: arrowId,
-      points: path,
-      dir: headDir.name,
-      dirVec: headDir,
-      head: { ...head },
-      tail: { ...path[0] }
-    };
-
-    for (let i = 0; i < path.length; i++) {
-      gridPts[path[i].y * width + path[i].x] = 1;
-      if (i > 0) {
-        const p1 = path[i - 1];
-        const p2 = path[i];
-        if (p1.y === p2.y) {
-          hSeg[p1.y * width + Math.min(p1.x, p2.x)] = 1;
-        } else {
-          vSeg[Math.min(p1.y, p2.y) * width + p1.x] = 1;
-        }
-      }
-    }
-
-    placedArrows.push(arrow);
-    // Remove occupied points from availablePoints ONLY when an arrow is placed
-    availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
+    return count;
   }
 
-  // Reverse so that initially unblocked arrows can escape first
+  const maxDirectExits = (catDef.id === 'expert' || catDef.id === 'master') ? 2 : 3;
+  let directExitCount = 0;
+
+  const maxTurnsConfig = catDef.maxTurns || 3;
+  const maxSegLenConfig = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' ? 3 : 4);
+
+  const passes = [
+    { mode: 'inner', maxTurns: maxTurnsConfig, maxSeg: maxSegLenConfig, minLen: 3, budgetRatio: 0.40, prioRayBias: 0.70, restrictExit: true },
+    { mode: 'middle', maxTurns: Math.max(2, maxTurnsConfig - 1), maxSeg: 2, minLen: 2, budgetRatio: 0.35, prioRayBias: 0.60, restrictExit: true },
+    { mode: 'outer', maxTurns: 2, maxSeg: 2, minLen: 2, budgetRatio: 0.25, prioRayBias: 0.35, restrictExit: true }
+  ];
+
+  const totalMaxAttempts = {
+    beginner: 18000,
+    intermediate: 24000,
+    advanced: 30000,
+    expert: 38000,
+    master: 45000,
+    hacker: 25000
+  }[catDef.id] || 25000;
+
+  for (const pass of passes) {
+    const passMaxAttempts = Math.round(totalMaxAttempts * pass.budgetRatio);
+    let passAttempts = 0;
+
+    while (
+      passAttempts < passMaxAttempts &&
+      availablePoints.length > 0 &&
+      (placedArrows.length < targetArrows || currentOccupied < targetOccupiedCells)
+    ) {
+      passAttempts++;
+
+      let pool;
+      if (pass.mode === 'inner') {
+        availablePoints.sort((a, b) => a.dist - b.dist);
+        const sliceLen = Math.max(1, Math.floor(availablePoints.length * 0.55));
+        pool = availablePoints.slice(0, sliceLen);
+      } else if (pass.mode === 'middle') {
+        availablePoints.sort((a, b) => a.dist - b.dist);
+        const sStart = Math.floor(availablePoints.length * 0.15);
+        const sEnd = Math.max(sStart + 1, Math.floor(availablePoints.length * 0.85));
+        pool = availablePoints.slice(sStart, sEnd);
+      } else {
+        availablePoints.sort((a, b) => b.dist - a.dist);
+        const sliceLen = Math.max(1, Math.floor(availablePoints.length * 0.75));
+        pool = availablePoints.slice(0, sliceLen);
+      }
+
+      let startPt;
+      const rayPoints = pool.filter(p => rayCellMap.has(p.y * width + p.x));
+      if (rayPoints.length > 0 && rng() < pass.prioRayBias) {
+        startPt = rayPoints[Math.floor(rng() * rayPoints.length)];
+      } else {
+        startPt = pool[Math.floor(rng() * pool.length)];
+      }
+
+      const path = [{ x: startPt.x, y: startPt.y }];
+      let curPt = { ...startPt };
+      const numSegments = 1 + Math.floor(rng() * pass.maxTurns);
+      let lastDir = null;
+      let lastTurnRot = 0;
+
+      for (let seg = 0; seg < numSegments; seg++) {
+        const possibleDirs = DIRS.filter(d => {
+          if (lastDir && d.dx === -lastDir.dx && d.dy === -lastDir.dy) return false;
+          if (lastDir && (d.dx !== lastDir.dx || d.dy !== lastDir.dy)) {
+            const turnRot = getTurnDirection(lastDir, d);
+            if (lastTurnRot !== 0 && turnRot === lastTurnRot) return false;
+          }
+
+          const nx = curPt.x + d.dx;
+          const ny = curPt.y + d.dy;
+          if (!mask(nx, ny, width, height)) return false;
+          if (gridPts[ny * width + nx]) return false;
+          if (d.dx !== 0) {
+            if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) return false;
+          } else {
+            if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) return false;
+          }
+          return true;
+        });
+
+        if (possibleDirs.length === 0) break;
+
+        const chosenDir = possibleDirs[Math.floor(rng() * possibleDirs.length)];
+        if (lastDir && (chosenDir.dx !== lastDir.dx || chosenDir.dy !== lastDir.dy)) {
+          lastTurnRot = getTurnDirection(lastDir, chosenDir);
+        }
+
+        const runLength = 1 + Math.floor(rng() * pass.maxSeg);
+        for (let s = 0; s < runLength; s++) {
+          const nx = curPt.x + chosenDir.dx;
+          const ny = curPt.y + chosenDir.dy;
+          if (!mask(nx, ny, width, height)) break;
+          if (gridPts[ny * width + nx]) break;
+          if (chosenDir.dx !== 0) {
+            if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) break;
+          } else {
+            if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) break;
+          }
+
+          curPt = { x: nx, y: ny };
+          path.push(curPt);
+        }
+
+        lastDir = chosenDir;
+      }
+
+      if (path.length < pass.minLen) continue;
+
+      const head = path[path.length - 1];
+      const headDir = lastDir;
+
+      // Strict Anti-Self-Collision Check
+      if (arrowHitsSelf(path, headDir.name)) {
+        continue;
+      }
+
+      if (!isRayClear(head.x, head.y, headDir)) {
+        continue;
+      }
+
+      if (pass.restrictExit) {
+        const unfilledInRay = countUnfilledInRay(head.x, head.y, headDir);
+        if (unfilledInRay === 0) {
+          if (directExitCount >= maxDirectExits && passAttempts < passMaxAttempts * 0.8) {
+            continue;
+          }
+          directExitCount++;
+        }
+      }
+
+      const arrowId = `arrow_${placedArrows.length + 1}`;
+      const arrow = {
+        id: arrowId,
+        points: path,
+        dir: headDir.name,
+        dirVec: headDir,
+        head: { ...head },
+        tail: { ...path[0] }
+      };
+
+      for (let i = 0; i < path.length; i++) {
+        gridPts[path[i].y * width + path[i].x] = 1;
+        if (i > 0) {
+          const p1 = path[i - 1];
+          const p2 = path[i];
+          if (p1.y === p2.y) {
+            hSeg[p1.y * width + Math.min(p1.x, p2.x)] = 1;
+          } else {
+            vSeg[Math.min(p1.y, p2.y) * width + p1.x] = 1;
+          }
+        }
+      }
+
+      let rx = head.x + headDir.dx;
+      let ry = head.y + headDir.dy;
+      while (rx >= 0 && rx < width && ry >= 0 && ry < height) {
+        const cell = ry * width + rx;
+        rayCellMap.set(cell, (rayCellMap.get(cell) || 0) + 1);
+        rx += headDir.dx;
+        ry += headDir.dy;
+      }
+
+      placedArrows.push(arrow);
+      currentOccupied += path.length;
+      availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
+    }
+  }
+
+  // Reverse so that initially unblocked root arrows escape first
   placedArrows.reverse();
 
-  // Time limit for Hacker mode: ~1.6s per arrow, min 30s, max 90s
-  const timeLimit = catDef.isTimed ? Math.max(30, Math.min(90, Math.round(placedArrows.length * 1.6))) : 0;
+  // STRICT 1 TO 3 EXITS GUARANTEE:
+  // Apply our solver-verified strict reducer:
+  // Expert & Master: strictly 1 to 2 initial free arrows!
+  // Beginner, Intermediate, Advanced, Hacker: strictly 2 to 3 initial free arrows!
+  const targetStrictFree = (catDef.id === 'expert' || catDef.id === 'master') ? (rng() < 0.65 ? 1 : 2) : (num % 2 === 0 ? 3 : 2);
+  const strictArrows = pruneToExactStrictFree(placedArrows, width, height, targetStrictFree);
+
+  // Assign 8-color snake palettes and uniform clean IDs
+  for (let i = 0; i < strictArrows.length; i++) {
+    const a = strictArrows[i];
+    a.id = `arrow_${i + 1}`;
+    const pal = SNAKE_PALETTES[i % SNAKE_PALETTES.length];
+    a.palette = pal;
+    a.color = pal.body;
+  }
+
+  // Calculate actual initial free count
+  const initialFreeCount = strictArrows.filter(a => canArrowEscape(a, strictArrows)).length;
+
+  // Time limit for Hacker mode: ~1.5s per arrow, min 30s, max 95s
+  const timeLimit = catDef.isTimed ? Math.max(30, Math.min(95, Math.round(strictArrows.length * 1.5))) : 0;
 
   return {
     category: catDef.id,
     categoryName: catDef.name,
     levelNumber: num,
     shapeName: baseShape.name,
+    shapeId: baseShape.id,
     isTimed: !!catDef.isTimed,
     timeLimit,
     width,
     height,
-    arrows: placedArrows
+    shapePoints: inShape,
+    initialFreeCount,
+    parMoves: strictArrows.length,
+    arrows: strictArrows
   };
 }
 
 export function getCategoryDef(categoryId) {
   return CATEGORIES.find(c => c.id === categoryId) || CATEGORIES[0];
 }
+

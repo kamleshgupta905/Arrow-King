@@ -27,6 +27,10 @@ export class HUD {
           <div class="hud-title-card">
             <div class="hud-level-label"><span id="hud-category-label">BEGINNER</span> • LEVEL <span id="hud-level-num">1</span></div>
             <div class="hud-shape-name" id="hud-shape-name">TRIANGLE</div>
+            <div class="hud-paths-badge" id="hud-paths-badge" title="Currently open escape paths">
+              <span class="hud-paths-dot"></span>
+              <span id="hud-paths-text">2 PATHS OPEN</span>
+            </div>
           </div>
 
           <!-- Countdown Timer for Hacker Mode -->
@@ -118,6 +122,24 @@ export class HUD {
     if (nameEl) nameEl.textContent = shapeName.toUpperCase();
 
     this.updateStars(3, false);
+  }
+
+  /**
+   * Updates currently open escape paths indicator (strictly 1 to 3 paths).
+   */
+  updateAvailablePaths(count = 1) {
+    const textEl = this.container.querySelector('#hud-paths-text');
+    const badgeEl = this.container.querySelector('#hud-paths-badge');
+    if (textEl) {
+      textEl.textContent = `${count} ${count === 1 ? 'PATH' : 'PATHS'} OPEN`;
+    }
+    if (badgeEl) {
+      if (count === 1) {
+        badgeEl.classList.add('single-path');
+      } else {
+        badgeEl.classList.remove('single-path');
+      }
+    }
   }
 
   /**

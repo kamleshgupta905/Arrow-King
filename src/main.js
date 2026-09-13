@@ -40,6 +40,7 @@ class GameApp {
     // Setup callbacks
     this.board.onVictoryCallback = (res) => this.handleVictory(res);
     this.board.onStarChangeCallback = (stars, lostStar) => this.hud.updateStars(stars, lostStar);
+    this.board.onAvailablePathsCallback = (count) => this.hud.updateAvailablePaths(count);
     this.board.onRestartNotificationCallback = (msg) => this.hud.showRestartToast(msg);
     this.board.onTimerUpdateCallback = (timeRemaining, isTimed) => this.hud.updateTimer(timeRemaining, isTimed);
     this.board.onCollisionImpactCallback = (gx, gy, dir) => {
@@ -191,6 +192,7 @@ class GameApp {
       levelData.categoryName
     );
     this.hud.updateTimer(this.board.timeRemaining, this.board.isTimed);
+    this.hud.updateAvailablePaths(this.board.currentlyUnblockedCount);
   }
 
   handleVictory(result) {

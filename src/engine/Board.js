@@ -32,6 +32,7 @@ export class Board {
     this.onVictoryCallback = null;
     this.onMoveCallback = null;
     this.onArrowsRemainingCallback = null;
+    this.onAvailablePathsCallback = null;
     this.onStarChangeCallback = null;
     this.onRestartNotificationCallback = null;
     this.onCollisionImpactCallback = null;
@@ -42,9 +43,12 @@ export class Board {
     this.level = levelData;
     this.width = levelData.width || 18;
     this.height = levelData.height || 18;
+    this.shapePoints = levelData.shapePoints || [];
 
     this.arrows = levelData.arrows.map(a => ({
       ...a,
+      palette: a.palette || null,
+      color: a.color || (a.palette ? a.palette.body : '#0084ff'),
       isEscaped: false,
       isEscaping: false,
       escapeProgress: 0,
@@ -91,9 +95,17 @@ export class Board {
     return this.arrows.filter(a => !a.isEscaped && !a.isEscaping).length;
   }
 
+  get currentlyUnblockedCount() {
+    const active = this.arrows.filter(a => !a.isEscaped);
+    return active.filter(a => this.checkArrowCanEscape(a).canEscape).length;
+  }
+
   notifyRemaining() {
     if (this.onArrowsRemainingCallback) {
       this.onArrowsRemainingCallback(this.remainingCount, this.arrows.length);
+    }
+    if (this.onAvailablePathsCallback) {
+      this.onAvailablePathsCallback(this.currentlyUnblockedCount);
     }
   }
 
@@ -261,7 +273,7 @@ export class Board {
       // 1. Escaping animation: smooth snake slither off board
       if (arrow.isEscaping) {
         anyEscaping = true;
-        arrow.escapeProgress += dt / 0.35;
+        arrow.escapeProgress += dt / 0.55;
 
         if (arrow.escapeProgress >= 1.0) {
           arrow.escapeProgress = 1.0;

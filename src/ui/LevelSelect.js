@@ -53,12 +53,22 @@ export class LevelSelect {
 
         <!-- Category Selector Tabs -->
         <div class="category-tabs-bar" id="category-tabs-bar">
-          ${CATEGORIES.map(cat => `
-            <button class="category-tab-btn ${cat.id === this.activeCategory ? 'active' : ''} ${cat.id === 'hacker' ? 'hacker-tab' : ''}" data-cat="${cat.id}">
-              <span class="cat-label">${cat.id === 'hacker' ? '⚡ Hacker' : cat.name}</span>
-              <span class="cat-count">100 Lvl</span>
-            </button>
-          `).join('')}
+          ${CATEGORIES.map(cat => {
+            const icon = {
+              beginner: '🟢',
+              intermediate: '🟡',
+              advanced: '🟠',
+              expert: '🔴',
+              master: '🟣',
+              hacker: '⚡'
+            }[cat.id] || '🔹';
+            return `
+              <button class="category-tab-btn ${cat.id === this.activeCategory ? 'active' : ''} ${cat.id === 'hacker' ? 'hacker-tab' : ''}" data-cat="${cat.id}">
+                <span class="cat-label">${icon} ${cat.name}</span>
+                <span class="cat-count">100 Lvl</span>
+              </button>
+            `;
+          }).join('')}
         </div>
 
         <!-- Range Sub-Tabs (1-20, 21-40, 41-60, 61-80, 81-100) -->
@@ -256,16 +266,18 @@ export class LevelSelect {
       }
     }
 
-    // Draw solid arrow lines
-    const arrowColor = this.activeCategory === 'hacker' ? '#0f172a' : '#1e293b';
-    ctx.strokeStyle = arrowColor;
-    ctx.fillStyle = arrowColor;
-    ctx.lineWidth = Math.max(2.2, cellSize * 0.20);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    // Draw solid sharp arrow lines
+    ctx.lineWidth = Math.max(2.4, cellSize * 0.22);
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
+    ctx.miterLimit = 4;
 
     for (const arrow of levelData.arrows) {
       if (arrow.points.length >= 2) {
+        const col = arrow.color || (this.activeCategory === 'hacker' ? '#0f172a' : '#1e293b');
+        ctx.strokeStyle = col;
+        ctx.fillStyle = col;
+
         ctx.beginPath();
         const p0 = arrow.points[0];
         ctx.moveTo(offsetX + p0.x * cellSize, offsetY + p0.y * cellSize);
@@ -279,7 +291,7 @@ export class LevelSelect {
         const head = arrow.points[arrow.points.length - 1];
         const hx = offsetX + head.x * cellSize;
         const hy = offsetY + head.y * cellSize;
-        const headSize = Math.max(4.5, cellSize * 0.40);
+        const headSize = Math.max(5, cellSize * 0.45);
 
         ctx.save();
         ctx.translate(hx, hy);
@@ -289,9 +301,8 @@ export class LevelSelect {
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(-headSize, -headSize * 0.46);
-        ctx.lineTo(-headSize * 0.75, 0);
-        ctx.lineTo(-headSize, headSize * 0.46);
+        ctx.lineTo(-headSize, -headSize * 0.44);
+        ctx.lineTo(-headSize, headSize * 0.44);
         ctx.closePath();
         ctx.fill();
         ctx.restore();

@@ -4,7 +4,7 @@
  */
 
 import { generateLevel } from './LevelGenerator.js';
-import { CATEGORIES, SHAPES_LIST } from './ShapeGenerator.js';
+import { CATEGORIES, getCategoryShape } from './ShapeGenerator.js';
 
 const levelCache = new Map();
 
@@ -34,6 +34,7 @@ export function getLevel(categoryOrNum = 'beginner', levelNum = 1) {
       ...lvl,
       arrows: lvl.arrows.map(a => ({
         ...a,
+        palette: a.palette ? { ...a.palette } : null,
         points: a.points.map(p => ({ x: p.x, y: p.y })),
         head: { ...a.head },
         tail: { ...a.tail },
@@ -55,8 +56,7 @@ export function getLevel(categoryOrNum = 'beginner', levelNum = 1) {
  * Returns shape metadata for a level without full maze generation.
  */
 export function getLevelMetadata(category, levelNum) {
-  const shapeIndex = (levelNum - 1) % SHAPES_LIST.length;
-  const baseShape = SHAPES_LIST[shapeIndex];
+  const baseShape = getCategoryShape(category, levelNum);
   return {
     category,
     levelNumber: levelNum,
