@@ -978,7 +978,113 @@ export const EXPERT_SHAPES = [
   }
 ];
 
+export const LION_SHAPE = {
+  id: 200,
+  name: 'ARROW KING LION',
+  width: 26,
+  height: 26,
+  isLion: true,
+  mask: (x, y, w, h) => {
+    const nx = x / w;
+    const ny = y / h;
+
+    // 1. Tail (Far Left)
+    if (nx >= 0.06 && nx <= 0.10 && ny >= 0.38 && ny <= 0.64) return true;
+    if (nx >= 0.03 && nx <= 0.11 && ny >= 0.62 && ny <= 0.76) return true; // Tail tuft/loop
+
+    // 2. Hindquarters & Back Leg
+    if (nx >= 0.11 && nx <= 0.30 && ny >= 0.30 && ny <= 0.62) {
+      if (nx <= 0.14 && ny <= 0.34) return false;
+      return true;
+    }
+    if (nx >= 0.11 && nx <= 0.25 && ny >= 0.62 && ny <= 0.94) return true;
+    if (nx >= 0.07 && nx <= 0.26 && ny >= 0.90 && ny <= 0.95) return true; // Hind paw
+
+    // 3. Torso & Spine
+    if (nx >= 0.26 && nx <= 0.48 && ny >= 0.26 && ny <= 0.60) return true;
+
+    // 4. Rear-Front Leg
+    if (nx >= 0.46 && nx <= 0.57 && ny >= 0.60 && ny <= 0.94) return true;
+    if (nx >= 0.42 && nx <= 0.59 && ny >= 0.90 && ny <= 0.95) return true; // Mid paw
+
+    // 5. Fore-Front Leg
+    if (nx >= 0.64 && nx <= 0.75 && ny >= 0.60 && ny <= 0.94) return true;
+    if (nx >= 0.62 && nx <= 0.79 && ny >= 0.90 && ny <= 0.95) return true; // Front paw
+
+    // 6. Mane & Chest
+    if (nx >= 0.42 && nx <= 0.56 && ny >= 0.14 && ny <= 0.26) return true;
+    if (nx >= 0.52 && nx <= 0.74 && ny >= 0.07 && ny <= 0.26) return true;
+    if (nx >= 0.72 && nx <= 0.85 && ny >= 0.11 && ny <= 0.26) return true;
+
+    if (nx >= 0.46 && nx <= 0.82 && ny >= 0.26 && ny <= 0.60) {
+      if (nx >= 0.57 && nx <= 0.64 && ny >= 0.68) return false;
+      return true;
+    }
+    if (nx >= 0.76 && nx <= 0.86 && ny >= 0.42 && ny <= 0.64) return true;
+
+    // 7. Head, Ears & Muzzle
+    if (nx >= 0.76 && nx <= 0.84 && ny >= 0.07 && ny <= 0.16) return true; // Ear
+    if (nx >= 0.80 && nx <= 0.90 && ny >= 0.18 && ny <= 0.30) return true; // Forehead
+    if (nx >= 0.84 && nx <= 0.98 && ny >= 0.30 && ny <= 0.42) return true; // Snout
+    if (nx >= 0.84 && nx <= 0.94 && ny >= 0.42 && ny <= 0.47) return true; // Chin
+    if (nx >= 0.84 && nx <= 0.88 && ny >= 0.46 && ny <= 0.50) return true; // Jowl
+
+    return false;
+  },
+  getArrowPalette: (arrow, width, height) => {
+    let avgX = 0, avgY = 0;
+    for (const p of arrow.points) {
+      avgX += p.x;
+      avgY += p.y;
+    }
+    avgX /= (arrow.points.length * width);
+    avgY /= (arrow.points.length * height);
+
+    // 4 Photo Reference Color Zones:
+    if (avgX < 0.35) {
+      // Zone 1: Royal Deep Blue (Hindquarters, Hind Leg, Tail)
+      return {
+        body: '#2563eb',
+        light: '#60a5fa',
+        shadow: '#1e40af',
+        eye: '#ffffff',
+        pupil: '#07162c'
+      };
+    } else if (avgX < 0.65) {
+      if (avgY < 0.46) {
+        // Zone 2: Hot Magenta / Violet (Upper Spine, Top Mane)
+        return {
+          body: '#d946ef',
+          light: '#f0abfc',
+          shadow: '#a21caf',
+          eye: '#ffffff',
+          pupil: '#07162c'
+        };
+      } else {
+        // Zone 3: Electric Cyan / Turquoise (Chest, Mid Mane)
+        return {
+          body: '#06b6d4',
+          light: '#67e8f9',
+          shadow: '#0e7490',
+          eye: '#ffffff',
+          pupil: '#07162c'
+        };
+      }
+    } else {
+      // Zone 4: Bright Golden Amber / Orange (Front Face, Muzzle, Crown, Forelegs)
+      return {
+        body: '#f97316',
+        light: '#fdba74',
+        shadow: '#c2410c',
+        eye: '#ffffff',
+        pupil: '#07162c'
+      };
+    }
+  }
+};
+
 export const MASTER_SHAPES = [
+  LION_SHAPE,
   {
     id: 201,
     name: 'GRAND LABYRINTH',
@@ -1507,13 +1613,19 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const targetStrictFree = (catDef.id === 'expert' || catDef.id === 'master') ? (rng() < 0.65 ? 1 : 2) : (num % 2 === 0 ? 3 : 2);
   const strictArrows = pruneToExactStrictFree(placedArrows, width, height, targetStrictFree);
 
-  // Assign 8-color snake palettes and uniform clean IDs
+  // Assign 8-color snake palettes and uniform clean IDs (or custom shape zoned palette)
   for (let i = 0; i < strictArrows.length; i++) {
     const a = strictArrows[i];
     a.id = `arrow_${i + 1}`;
-    const pal = SNAKE_PALETTES[i % SNAKE_PALETTES.length];
-    a.palette = pal;
-    a.color = pal.body;
+    if (typeof baseShape.getArrowPalette === 'function') {
+      const pal = baseShape.getArrowPalette(a, width, height);
+      a.palette = pal;
+      a.color = pal.body;
+    } else {
+      const pal = SNAKE_PALETTES[i % SNAKE_PALETTES.length];
+      a.palette = pal;
+      a.color = pal.body;
+    }
   }
 
   // Calculate actual initial free count
