@@ -115,8 +115,15 @@ class GameApp {
       onPause: () => this.settingsModal.show(),
       onUndo: () => this.board.undo(),
       onHint: () => this.board.getHint(),
-      onRestart: () => this.board.restart()
+      onRestart: () => this.board.restart(),
+      onZoomIn: () => this.renderer.zoomIn(),
+      onZoomOut: () => this.renderer.zoomOut(),
+      onZoomReset: () => this.renderer.resetZoom()
     });
+
+    this.renderer.onZoomChange = (factor) => {
+      this.hud.setZoomBadge(factor);
+    };
 
     // 4. Modals
     this.victoryModal = new VictoryModal(this.modalContainer, {
@@ -183,6 +190,7 @@ class GameApp {
     this.hud.show();
 
     this.renderer.resize();
+    this.renderer.resetZoom();
     const levelData = getLevel(this.currentCategory, this.currentLevelNum);
     this.board.loadLevel(levelData);
 

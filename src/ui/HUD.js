@@ -54,6 +54,27 @@ export class HUD {
           </button>
         </header>
 
+        <!-- Floating Glass Zoom Controls -->
+        <aside class="hud-zoom-dock" id="hud-zoom-dock">
+          <button id="btn-zoom-in" class="zoom-dock-btn" title="Zoom In (+)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <button id="btn-zoom-reset" class="zoom-dock-btn" title="Fit to Screen (100%)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+          <button id="btn-zoom-out" class="zoom-dock-btn" title="Zoom Out (-)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <div class="zoom-dock-badge" id="zoom-dock-badge">100%</div>
+        </aside>
+
         <!-- Notification banner on out of stars / restart -->
         <div class="hud-toast-banner" id="hud-toast-banner" style="display: none;"></div>
 
@@ -111,6 +132,37 @@ export class HUD {
     this.container.querySelector('#btn-hud-restart')?.addEventListener('click', () => {
       if (this.callbacks.onRestart) this.callbacks.onRestart();
     });
+
+    // Zoom dock handlers
+    this.container.querySelector('#btn-zoom-in')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      soundManager.playTap();
+      if (this.callbacks.onZoomIn) this.callbacks.onZoomIn();
+    });
+
+    this.container.querySelector('#btn-zoom-out')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      soundManager.playTap();
+      if (this.callbacks.onZoomOut) this.callbacks.onZoomOut();
+    });
+
+    this.container.querySelector('#btn-zoom-reset')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      soundManager.playTap();
+      if (this.callbacks.onZoomReset) this.callbacks.onZoomReset();
+    });
+  }
+
+  setZoomBadge(zoomFactor) {
+    const badge = this.container.querySelector('#zoom-dock-badge');
+    if (!badge) return;
+    const pct = Math.round(zoomFactor * 100);
+    badge.textContent = `${pct}%`;
+    badge.classList.add('visible');
+    clearTimeout(this._zoomBadgeTimer);
+    this._zoomBadgeTimer = setTimeout(() => {
+      badge.classList.remove('visible');
+    }, 1500);
   }
 
   updateLevelInfo(levelNum, shapeName, categoryName = 'Beginner') {

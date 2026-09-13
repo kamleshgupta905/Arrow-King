@@ -17,9 +17,23 @@ export class Renderer {
     this.width = 0;
     this.height = 0;
     this.cellSize = 32;
+    this.baseCellSize = 32;
     this.offsetX = 0;
     this.offsetY = 0;
     this.animTime = 0;
+
+    // Smooth 60fps Zoom & Pan Camera System
+    this.zoom = 1.0;
+    this.targetZoom = 1.0;
+    this.panX = 0;
+    this.panY = 0;
+    this.targetPanX = 0;
+    this.targetPanY = 0;
+    this.minZoom = 0.85;
+    this.maxZoom = 3.6;
+    this.boardW = 0;
+    this.boardH = 0;
+    this.onZoomChange = null;
 
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -53,17 +67,97 @@ export class Renderer {
     };
   }
 
-  updateTransforms(boardW, boardH) {
-    const availableW = this.width - 48;
-    const availableH = this.height - 150;
+  zoomIn() {
+    this.zoomBy(1.30);
+  }
 
-    this.cellSize = Math.max(16, Math.min(availableW / boardW, availableH / boardH));
+  zoomOut() {
+    this.zoomBy(0.77);
+  }
+
+  resetZoom() {
+    this.targetZoom = 1.0;
+    this.targetPanX = 0;
+    this.targetPanY = 0;
+    if (this.onZoomChange) this.onZoomChange(1.0);
+  }
+
+  zoomBy(factor, screenX = this.width / 2, screenY = this.height / 2) {
+    const prevZoom = this.targetZoom;
+    let nextZoom = this.targetZoom * factor;
+    nextZoom = Math.max(this.minZoom, Math.min(this.maxZoom, nextZoom));
+
+    if (Math.abs(nextZoom - 1.0) < 0.05 && factor < 1) {
+      nextZoom = 1.0;
+    }
+
+    const ratio = nextZoom / prevZoom;
+    this.targetZoom = nextZoom;
+
+    if (nextZoom <= 1.0) {
+      this.targetPanX = 0;
+      this.targetPanY = 0;
+    } else {
+      const cx = screenX - this.width / 2;
+      const cy = screenY - this.height / 2;
+      this.targetPanX = (this.targetPanX - cx) * ratio + cx;
+      this.targetPanY = (this.targetPanY - cy) * ratio + cy;
+      this.clampPan();
+    }
+
+    if (this.onZoomChange) this.onZoomChange(this.targetZoom);
+  }
+
+  panBy(dx, dy) {
+    if (this.targetZoom <= 1.02) return;
+    this.targetPanX += dx;
+    this.targetPanY += dy;
+    this.clampPan();
+  }
+
+  clampPan() {
+    if (!this.boardW || !this.boardH) return;
+    const totalW = this.boardW * (this.baseCellSize * this.targetZoom);
+    const totalH = this.boardH * (this.baseCellSize * this.targetZoom);
+
+    const maxPanX = Math.max(0, (totalW - this.width * 0.70) / 2);
+    const maxPanY = Math.max(0, (totalH - this.height * 0.60) / 2);
+
+    this.targetPanX = Math.max(-maxPanX, Math.min(maxPanX, this.targetPanX));
+    this.targetPanY = Math.max(-maxPanY, Math.min(maxPanY, this.targetPanY));
+  }
+
+  updateTransforms(boardW, boardH) {
+    this.boardW = boardW;
+    this.boardH = boardH;
+
+    // Safe clearance margins:
+    // Clear top HUD (~92px) and bottom action buttons (~92px)
+    const topInset = 92;
+    const bottomInset = 92;
+    const sideInset = 28;
+
+    const availableW = Math.max(80, this.width - sideInset * 2);
+    const availableH = Math.max(80, this.height - (topInset + bottomInset));
+
+    // True mathematical fit: guaranteed zero-crop on any board shape or dimensions!
+    const baseFitSize = Math.min(availableW / boardW, availableH / boardH);
+    this.baseCellSize = baseFitSize;
+
+    // 60fps buttery smooth camera easing
+    this.zoom += (this.targetZoom - this.zoom) * 0.22;
+    this.panX += (this.targetPanX - this.panX) * 0.22;
+    this.panY += (this.targetPanY - this.panY) * 0.22;
+
+    this.cellSize = baseFitSize * this.zoom;
 
     const totalW = boardW * this.cellSize;
     const totalH = boardH * this.cellSize;
 
-    this.offsetX = (this.width - totalW) / 2;
-    this.offsetY = (this.height - totalH) / 2 + 24;
+    // Centered cleanly in the safe playable viewport
+    const safeCenterY = topInset + availableH / 2;
+    this.offsetX = (this.width - totalW) / 2 + this.panX;
+    this.offsetY = safeCenterY - totalH / 2 + this.panY;
   }
 
   render(board, dt = 0.016) {

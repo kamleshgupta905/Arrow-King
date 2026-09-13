@@ -981,8 +981,8 @@ export const EXPERT_SHAPES = [
 export const LION_SHAPE = {
   id: 200,
   name: 'ARROW KING LION',
-  width: 26,
-  height: 26,
+  width: 28,
+  height: 24,
   isLion: true,
   mask: (x, y, w, h) => {
     const nx = x / w;
@@ -1350,13 +1350,13 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
 
   // Progressive scaling across levels 1..100
   const progScale = 1.0 + ((num - 1) / 99) * 0.18;
-  const totalScale = (catDef.scale || 1.0) * progScale;
+  const totalScale = baseShape.isLion ? 1.0 : ((catDef.scale || 1.0) * progScale);
 
   const width = Math.round(baseShape.width * totalScale);
   const height = Math.round(baseShape.height * totalScale);
   const mask = baseShape.mask;
 
-  const targetArrows = Math.round(
+  const targetArrows = baseShape.isLion ? 48 : Math.round(
     catDef.minArrows + ((num - 1) / 99) * (catDef.maxArrows - catDef.minArrows)
   );
 
