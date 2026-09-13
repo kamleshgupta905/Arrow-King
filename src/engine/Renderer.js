@@ -30,7 +30,7 @@ export class Renderer {
     this.targetPanX = 0;
     this.targetPanY = 0;
     this.minZoom = 0.85;
-    this.maxZoom = 3.6;
+    this.maxZoom = 8.0;
     this.boardW = 0;
     this.boardH = 0;
     this.onZoomChange = null;
@@ -164,9 +164,9 @@ export class Renderer {
     this.animTime += dt;
     const ctx = this.ctx;
 
-    // 1. Clean light canvas background
+    // 1. Sleek dark canvas background matching Photos 2-5
     ctx.save();
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#0b0f19';
     ctx.fillRect(0, 0, this.width, this.height);
 
     if (!board || !board.level) {
@@ -176,7 +176,7 @@ export class Renderer {
 
     this.updateTransforms(board.width, board.height);
 
-    // 2. Render shape silhouette backdrop & subtle contour
+    // 2. Render subtle shape backdrop (outline removed - shape is formed purely by arrows!)
     this.drawShapeSilhouette(ctx, board);
 
     // 3. Render clean dot grid aligned with the shape
@@ -194,95 +194,31 @@ export class Renderer {
   }
 
   /**
-   * Draws a soft shape silhouette backdrop and clean contour outline
-   * so the shape (Heart, Mushroom, Triangle, Dog, etc.) is crystal clear and unmistakable.
-   */
-  /**
-   * Draws a crisp sharp shape silhouette backdrop and sharp maze boundary (Photo 1).
+   * Draws shape backdrop without any outer boundary box/outline.
+   * Sharp shape silhouette is formed purely by the interlocking arrows (Photos 2-5).
    */
   drawShapeSilhouette(ctx, board) {
-    if (!board.shapePoints || board.shapePoints.length === 0) return;
-
-    ctx.save();
-    const cell = this.cellSize;
-    const shapeSet = new Set();
-    for (const p of board.shapePoints) {
-      shapeSet.add(`${p.x},${p.y}`);
-    }
-
-    // 1. Crisp sharp silhouette tile fill
-    ctx.fillStyle = '#f1f5f9';
-    const tileSize = cell * 0.96;
-
-    for (const p of board.shapePoints) {
-      const pos = this.gridToScreen(p.x, p.y);
-      const x = pos.x - tileSize / 2;
-      const y = pos.y - tileSize / 2;
-
-      ctx.fillRect(x, y, tileSize, tileSize);
-    }
-
-    // 2. Draw razor-sharp perimeter contour boundary (Photo 1 sharp maze walls)
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = Math.max(1.8, cell * 0.055);
-    ctx.lineCap = 'square';
-    ctx.lineJoin = 'miter';
-    ctx.miterLimit = 4;
-
-    const half = cell / 2;
-    for (const p of board.shapePoints) {
-      const pos = this.gridToScreen(p.x, p.y);
-      const topClear = !shapeSet.has(`${p.x},${p.y - 1}`);
-      const bottomClear = !shapeSet.has(`${p.x},${p.y + 1}`);
-      const leftClear = !shapeSet.has(`${p.x - 1},${p.y}`);
-      const rightClear = !shapeSet.has(`${p.x + 1},${p.y}`);
-
-      ctx.beginPath();
-      if (topClear) {
-        ctx.moveTo(pos.x - half, pos.y - half);
-        ctx.lineTo(pos.x + half, pos.y - half);
-      }
-      if (bottomClear) {
-        ctx.moveTo(pos.x - half, pos.y + half);
-        ctx.lineTo(pos.x + half, pos.y + half);
-      }
-      if (leftClear) {
-        ctx.moveTo(pos.x - half, pos.y - half);
-        ctx.lineTo(pos.x - half, pos.y + half);
-      }
-      if (rightClear) {
-        ctx.moveTo(pos.x + half, pos.y - half);
-        ctx.lineTo(pos.x + half, pos.y + half);
-      }
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    // Outer border/box completely removed as requested:
+    // "or jo out line hai usko hata do arrow sa hi sharp shape bana jaisa 2 photo mai daiya gaiya hai"
   }
 
   /**
-   * Draws dots: crisp inside the shape silhouette, subtle outside the shape.
+   * Draws subtle pin-point dots only inside the shape silhouette, zero outline.
    */
   drawDotGrid(ctx, board) {
     ctx.save();
     const boardW = board.width;
     const boardH = board.height;
-    const dotRadius = Math.max(1.2, this.cellSize * 0.055);
+    const dotRadius = Math.max(1.0, this.cellSize * 0.045);
     const shapeSet = new Set(board.shapePoints ? board.shapePoints.map(p => `${p.x},${p.y}`) : []);
 
-    for (let y = 1; y < boardH; y++) {
-      for (let x = 1; x < boardW; x++) {
-        const inShape = shapeSet.has(`${x},${y}`);
-        if (!inShape) {
-          ctx.fillStyle = 'rgba(203, 213, 225, 0.20)';
-        } else {
-          ctx.fillStyle = '#94a3b8';
-        }
-        const pos = this.gridToScreen(x, y);
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, inShape ? dotRadius : dotRadius * 0.65, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    // Only draw delicate pinpoint dots inside the shape for alignment
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.09)';
+    for (const p of (board.shapePoints || [])) {
+      const pos = this.gridToScreen(p.x, p.y);
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, dotRadius, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();

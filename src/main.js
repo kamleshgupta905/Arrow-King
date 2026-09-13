@@ -67,7 +67,15 @@ class GameApp {
       if (dataStr) {
         const data = JSON.parse(dataStr);
         return {
-          unlocked: data.unlocked || { beginner: data.maxUnlockedLevel || 1 },
+          unlocked: {
+            beginner: 1,
+            intermediate: 1,
+            advanced: 1,
+            expert: 1,
+            master: 1,
+            hacker: 1,
+            ...(data.unlocked || {})
+          },
           stars: data.stars || {},
           bestMoves: data.bestMoves || {}
         };
@@ -76,7 +84,14 @@ class GameApp {
       console.warn('Storage read error:', e);
     }
     return {
-      unlocked: { beginner: 1 },
+      unlocked: {
+        beginner: 1,
+        intermediate: 1,
+        advanced: 1,
+        expert: 1,
+        master: 1,
+        hacker: 1
+      },
       stars: {},
       bestMoves: {}
     };
@@ -176,6 +191,19 @@ class GameApp {
     } else {
       cat = categoryOrNum;
       num = levelNum;
+    }
+
+    // Star requirement check: Expert (40★), Master (60★)
+    const totalStars = Object.values(this.progress.stars || {}).reduce((sum, s) => sum + (typeof s === 'number' ? s : 0), 0);
+    if (cat === 'expert' && totalStars < 40) {
+      console.warn(`Expert level locked: requires 40 stars (currently ${totalStars})`);
+      this.showLevelSelect();
+      return;
+    }
+    if (cat === 'master' && totalStars < 60) {
+      console.warn(`Master level locked: requires 60 stars (currently ${totalStars})`);
+      this.showLevelSelect();
+      return;
     }
 
     this.currentCategory = cat;

@@ -62,10 +62,11 @@ export class LevelSelect {
               master: '🟣',
               hacker: '⚡'
             }[cat.id] || '🔹';
+            const lockInfo = this.getCategoryLockInfo(cat.id, totalStars);
             return `
-              <button class="category-tab-btn ${cat.id === this.activeCategory ? 'active' : ''} ${cat.id === 'hacker' ? 'hacker-tab' : ''}" data-cat="${cat.id}">
-                <span class="cat-label">${icon} ${cat.name}</span>
-                <span class="cat-count">100 Lvl</span>
+              <button class="category-tab-btn ${cat.id === this.activeCategory ? 'active' : ''} ${cat.id === 'hacker' ? 'hacker-tab' : ''} ${lockInfo.isLocked ? 'cat-locked' : ''}" data-cat="${cat.id}">
+                <span class="cat-label">${icon} ${cat.name} ${lockInfo.isLocked ? `<span class="tab-lock-badge">🔒 ${lockInfo.label}</span>` : ''}</span>
+                <span class="cat-count">${lockInfo.isLocked ? `Need ${lockInfo.requiredStars}★` : '100 Lvl'}</span>
               </button>
             `;
           }).join('')}
@@ -93,15 +94,54 @@ export class LevelSelect {
     this.bindEvents();
   }
 
+  getCategoryLockInfo(catId, totalStars) {
+    if (catId === 'expert' && totalStars < 40) {
+      return { isLocked: true, requiredStars: 40, label: '40★' };
+    }
+    if (catId === 'master' && totalStars < 60) {
+      return { isLocked: true, requiredStars: 60, label: '60★' };
+    }
+    return { isLocked: false, requiredStars: 0, label: '' };
+  }
+
   populateGrid() {
     const gridBody = this.container.querySelector('#levels-grid-body');
     if (!gridBody) return;
 
-    const [startLvl, endLvl] = this.ranges[this.activeRangeIndex];
     const catId = this.activeCategory;
-    const unlockedMap = this.progressData.unlocked || {};
-    const maxUnlocked = unlockedMap[catId] || (catId === 'beginner' ? (this.progressData.maxUnlockedLevel || 1) : 1);
     const starsMap = this.progressData.stars || {};
+    const totalStars = this.calculateTotalStars(starsMap);
+    const catLockInfo = this.getCategoryLockInfo(catId, totalStars);
+
+    // If tier is locked by star requirement (40 stars for Expert, 60 stars for Master)
+    if (catLockInfo.isLocked) {
+      this.cancelPreviewRendering();
+      const catName = catId.charAt(0).toUpperCase() + catId.slice(1);
+      const remainingStars = catLockInfo.requiredStars - totalStars;
+      gridBody.innerHTML = `
+        <div class="category-locked-view">
+          <div class="cat-locked-card">
+            <div class="cat-locked-icon">🔒</div>
+            <h3 class="cat-locked-title">${catName.toUpperCase()} TIER LOCKED</h3>
+            <p class="cat-locked-desc">
+              Collect <strong>${catLockInfo.requiredStars} Stars</strong> across previous tiers to unlock <strong>${catName}</strong> levels.
+            </p>
+            <div class="cat-locked-progress-wrap">
+              <div class="cat-locked-progress-bar" style="width: ${Math.min(100, Math.round((totalStars / catLockInfo.requiredStars) * 100))}%;"></div>
+            </div>
+            <div class="cat-locked-stat">
+              <span class="stat-current">★ Current Stars: <strong>${totalStars}</strong></span>
+              <span class="stat-needed">★ Needed: <strong>${remainingStars} more</strong></span>
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const [startLvl, endLvl] = this.ranges[this.activeRangeIndex];
+    const unlockedMap = this.progressData.unlocked || {};
+    const maxUnlocked = unlockedMap[catId] !== undefined ? unlockedMap[catId] : (catId === 'beginner' ? 1 : 1);
 
     const allMeta = getCategoryLevelsMetadata(catId);
     const rangeMeta = allMeta.slice(startLvl - 1, endLvl);

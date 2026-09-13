@@ -27,12 +27,12 @@ export const SNAKE_PALETTES = [
 ];
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 16, maxArrows: 26, maxTurns: 2, scale: 1.0 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 26, maxArrows: 40, maxTurns: 3, scale: 1.15 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 38, maxArrows: 55, maxTurns: 4, scale: 1.3 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 50, maxArrows: 72, maxTurns: 5, scale: 1.45 },
-  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 65, maxArrows: 95, maxTurns: 6, scale: 1.6 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 28, maxArrows: 46, maxTurns: 3, scale: 1.25, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 20, maxArrows: 32, maxTurns: 2, scale: 1.0 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 650, maxArrows: 700, maxTurns: 3, scale: 15.0 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 800, maxArrows: 850, maxTurns: 4, scale: 16.5 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 950, maxArrows: 1000, maxTurns: 4, scale: 12.5 },
+  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 950, maxArrows: 1000, maxTurns: 4, scale: 12.0 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 30, maxArrows: 50, maxTurns: 3, scale: 1.2, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -1083,59 +1083,182 @@ export const LION_SHAPE = {
   }
 };
 
+export const SITTING_CAT_SHAPE = {
+  id: 201,
+  name: 'CIRCUIT SITTING CAT',
+  width: 26,
+  height: 28,
+  isMasterShape: true,
+  mask: (x, y, w, h) => {
+    if (x >= 8 && x <= 11 && y >= 2 && y <= 6 && (x - 8 >= y - 2)) return true;
+    if (x >= 17 && x <= 20 && y >= 2 && y <= 6 && (20 - x >= y - 2)) return true;
+    if (x >= 9 && x <= 19 && y >= 5 && y <= 10) return true;
+    if ((x >= 6 && x <= 8 && (y === 8 || y === 9)) || (x >= 20 && x <= 22 && (y === 8 || y === 9))) return true;
+    if (x >= 10 && x <= 18 && y >= 10 && y <= 14) return true;
+    if (y >= 14 && y <= 24) {
+      const prog = (y - 14) / 10;
+      if (x >= Math.round(9 - prog * 4) && x <= Math.round(18 + prog * 4)) return true;
+    }
+    if (x >= 2 && x <= 4 && y >= 14 && y <= 23) return true;
+    if (x >= 3 && x <= 5 && y >= 12 && y <= 14) return true;
+    if (x >= 2 && x <= 6 && y >= 22 && y <= 24) return true;
+    if (y >= 24 && y <= 25 && x >= 7 && x <= 21) return true;
+    return false;
+  },
+  getArrowPalette: (arrow, width, height) => {
+    let avgX = 0, avgY = 0;
+    for (const p of arrow.points) { avgX += p.x; avgY += p.y; }
+    avgX /= arrow.points.length;
+    avgY /= arrow.points.length;
+
+    // Photo 2: Cream white bib on chest
+    if (avgX >= 10 && avgX <= 18 && avgY >= 11 && avgY <= 17) {
+      return { body: '#f8fafc', light: '#ffffff', shadow: '#94a3b8', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgX < 8 || avgY < 7) {
+      return { body: '#ea580c', light: '#fb923c', shadow: '#9a3412', eye: '#ffffff', pupil: '#07162c' };
+    }
+    return { body: '#d97706', light: '#fde047', shadow: '#78350f', eye: '#ffffff', pupil: '#07162c' };
+  }
+};
+
+export const STANDING_CAT_SHAPE = {
+  id: 202,
+  name: 'RAINBOW STANDING CAT',
+  width: 28,
+  height: 26,
+  isMasterShape: true,
+  mask: (x, y, w, h) => {
+    if (x >= 2 && x <= 4 && y >= 5 && y <= 12) return true;
+    if (x >= 3 && x <= 6 && y >= 3 && y <= 5) return true;
+    if (x >= 4 && x <= 7 && y >= 10 && y <= 13) return true;
+    if (x >= 6 && x <= 20 && y >= 10 && y <= 16) return true;
+    if (x >= 19 && x <= 24 && y >= 6 && y <= 11) return true;
+    if (x >= 19 && x <= 21 && y >= 3 && y <= 6) return true;
+    if (x >= 22 && x <= 24 && y >= 3 && y <= 6) return true;
+    if (x >= 24 && x <= 26 && (y === 8 || y === 9)) return true;
+    if (x >= 6 && x <= 8 && y >= 16 && y <= 24) return true;
+    if (x >= 9 && x <= 10 && y >= 16 && y <= 23) return true;
+    if (x >= 17 && x <= 18 && y >= 16 && y <= 23) return true;
+    if (x >= 19 && x <= 21 && y >= 16 && y <= 24) return true;
+    if (y === 24 && ((x >= 6 && x <= 9) || (x >= 18 && x <= 22))) return true;
+    return false;
+  },
+  getArrowPalette: (arrow, width, height) => {
+    let avgX = 0, avgY = 0;
+    for (const p of arrow.points) { avgX += p.x; avgY += p.y; }
+    avgX /= arrow.points.length;
+    avgY /= arrow.points.length;
+
+    // Photo 3 Rainbow Spectrum:
+    if (avgX >= 18 && avgY <= 11) {
+      return { body: '#f43f5e', light: '#fda4af', shadow: '#be123c', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgX >= 14 && avgY <= 14) {
+      return { body: '#a855f7', light: '#d8b4fe', shadow: '#7e22ce', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgY <= 13) {
+      return { body: '#f97316', light: '#fdba74', shadow: '#c2410c', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgY <= 17) {
+      return { body: '#06b6d4', light: '#67e8f9', shadow: '#0e7490', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    return { body: '#10b981', light: '#6ee7b7', shadow: '#047857', eye: '#ffffff', pupil: '#0f172a' };
+  }
+};
+
+export const UMBRELLA_SHAPE = {
+  id: 203,
+  name: 'LABYRINTH UMBRELLA',
+  width: 26,
+  height: 28,
+  isMasterShape: true,
+  mask: (x, y, w, h) => {
+    const midX = 13;
+    if (x >= 12 && x <= 14 && y >= 1 && y <= 3) return true;
+    if (y >= 4 && y <= 12) {
+      const dy = 12 - y;
+      const maxDx = Math.round(Math.sqrt(Math.max(0, 1 - (dy * dy) / 81)) * 12);
+      if (Math.abs(x - midX) <= maxDx) return true;
+    }
+    if (y === 13 && Math.abs(x - midX) <= 12) return true;
+    if (y >= 13 && y <= 23 && (x === 12 || x === 13)) return true;
+    if (y >= 23 && y <= 25 && (x === 12 || x === 13)) return true;
+    if (y >= 25 && y <= 26 && x >= 13 && x <= 16) return true;
+    if (y >= 23 && y <= 25 && (x === 15 || x === 16)) return true;
+    return false;
+  },
+  getArrowPalette: (arrow, width, height) => {
+    let avgY = 0;
+    for (const p of arrow.points) { avgY += p.y; }
+    avgY /= arrow.points.length;
+
+    if (avgY >= 23) {
+      return { body: '#f97316', light: '#fdba74', shadow: '#c2410c', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgY >= 13 && avgY < 23) {
+      return { body: '#f8fafc', light: '#ffffff', shadow: '#94a3b8', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    const colors = [
+      { body: '#06b6d4', light: '#67e8f9', shadow: '#0e7490' },
+      { body: '#f43f5e', light: '#fda4af', shadow: '#be123c' },
+      { body: '#eab308', light: '#fef08a', shadow: '#a16207' },
+      { body: '#a855f7', light: '#d8b4fe', shadow: '#7e22ce' },
+      { body: '#10b981', light: '#6ee7b7', shadow: '#047857' }
+    ];
+    const idx = Math.abs(Math.round(arrow.points[0].x * 3 + arrow.points[0].y * 7)) % colors.length;
+    const c = colors[idx];
+    return { ...c, eye: '#ffffff', pupil: '#0f172a' };
+  }
+};
+
+export const SHRIMP_SHAPE = {
+  id: 204,
+  name: 'NEON CIRCUIT SHRIMP',
+  width: 28,
+  height: 26,
+  isMasterShape: true,
+  mask: (x, y, w, h) => {
+    if (y >= 8 && y <= 11 && x >= 2 && x <= 7) return true;
+    if (y >= 12 && y <= 14 && x >= 3 && x <= 6) return true;
+    if (y >= 3 && y <= 7 && x >= 9 && x <= 16) {
+      if (Math.hypot(x - 14, y - 9) <= 7) return true;
+    }
+    if (y >= 7 && y <= 12 && x >= 7 && x <= 17) return true;
+    if (y >= 13 && y <= 17 && (x === 8 || x === 10 || x === 12)) return true;
+    if (y >= 13 && y <= 18 && (x === 7 || x === 9 || x === 11 || x === 13)) return true;
+    if (x >= 14 && x <= 22 && y >= 3 && y <= 8) return true;
+    if (x >= 17 && x <= 24 && y >= 7 && y <= 13) return true;
+    if (x >= 18 && x <= 24 && y >= 13 && y <= 18) return true;
+    if (x >= 14 && x <= 21 && y >= 17 && y <= 22) return true;
+    if (x >= 14 && x <= 18 && y >= 22 && y <= 25) return true;
+    return false;
+  },
+  getArrowPalette: (arrow, width, height) => {
+    let avgX = 0, avgY = 0;
+    for (const p of arrow.points) { avgX += p.x; avgY += p.y; }
+    avgX /= arrow.points.length;
+    avgY /= arrow.points.length;
+
+    if (avgX <= 13 && avgY <= 14) {
+      return { body: '#ff5722', light: '#ff8a65', shadow: '#d84315', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgX <= 18 && avgY <= 10) {
+      return { body: '#facc15', light: '#fef08a', shadow: '#ca8a04', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    if (avgX >= 16 && avgY <= 17) {
+      return { body: '#00e5ff', light: '#84ffff', shadow: '#00b0ff', eye: '#ffffff', pupil: '#0f172a' };
+    }
+    return { body: '#f43f5e', light: '#fb7185', shadow: '#be123c', eye: '#ffffff', pupil: '#0f172a' };
+  }
+};
+
 export const MASTER_SHAPES = [
   LION_SHAPE,
-  {
-    id: 201,
-    name: 'GRAND LABYRINTH',
-    width: 24,
-    height: 24,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
-  },
-  {
-    id: 202,
-    name: 'HYPER CIRCUIT',
-    width: 24,
-    height: 24,
-    mask: (x, y, w, h) => {
-      if ((x < 3 || x > w - 4) && (y < 3 || y > h - 4)) return false;
-      return x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2;
-    }
-  },
-  {
-    id: 203,
-    name: 'MASTER MATRIX',
-    width: 26,
-    height: 24,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
-  },
-  {
-    id: 204,
-    name: 'TITAN MEANDER',
-    width: 24,
-    height: 24,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
-  },
-  {
-    id: 205,
-    name: 'INFINITY LABYRINTH',
-    width: 26,
-    height: 22,
-    mask: (x, y, w, h) => {
-      const cx1 = w * 0.32;
-      const cx2 = w * 0.68;
-      const cy = h / 2;
-      const r = h * 0.44;
-      return Math.hypot(x - cx1, y - cy) <= r || Math.hypot(x - cx2, y - cy) <= r;
-    }
-  },
-  {
-    id: 206,
-    name: 'OMEGA MATRIX',
-    width: 24,
-    height: 24,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
-  }
+  SITTING_CAT_SHAPE,
+  STANDING_CAT_SHAPE,
+  UMBRELLA_SHAPE,
+  SHRIMP_SHAPE
 ];
 
 export const HACKER_SHAPES = [
@@ -1267,79 +1390,109 @@ function solveLevelStepByStep(arrows) {
 }
 
 /**
- * Tightens and prunes level arrows so that at the start,
- * STRICTLY 1 TO 3 ARROWS are free to escape (Photo 1 mechanic).
+ * Checks which arrow in activeArrows is hit first by ray (hx, hy, dir).
  */
-function pruneToExactStrictFree(levelArrows, width, height, targetMax = 2) {
-  let arrows = levelArrows.map(a => ({
-    ...a,
-    points: a.points.map(p => ({ ...p })),
-    head: { ...a.head },
-    tail: { ...a.tail },
-    dirVec: { ...a.dirVec }
-  }));
+function getFirstHitArrow(hx, hy, dir, activeArrows) {
+  let closestDist = Infinity;
+  let closestArrow = null;
 
-  let free = arrows.filter(a => canArrowEscape(a, arrows));
-  if (free.length <= targetMax) return arrows;
+  const dx = dir.dx;
+  const dy = dir.dy;
 
-  // Strategy 1: Reverse excess free arrows if solvable
-  for (const candidate of [...free]) {
-    if (free.length <= targetMax) break;
-    const reversedPts = candidate.points.slice().reverse();
-    const p0 = reversedPts[reversedPts.length - 2];
-    const p1 = reversedPts[reversedPts.length - 1];
-    const rdx = p1.x - p0.x;
-    const rdy = p1.y - p0.y;
-    const dirObj = DIRS.find(d => d.dx === rdx && d.dy === rdy) || candidate.dirVec;
+  for (const other of activeArrows) {
+    for (let i = 0; i < other.points.length; i++) {
+      const p = other.points[i];
+      const ox = p.x - hx;
+      const oy = p.y - hy;
+      if (dx !== 0 && oy === 0 && (ox * dx > 0)) {
+        const dist = Math.abs(ox);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestArrow = other;
+        }
+      }
+      if (dy !== 0 && ox === 0 && (oy * dy > 0)) {
+        const dist = Math.abs(oy);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestArrow = other;
+        }
+      }
 
-    const reversedCandidate = {
-      ...candidate,
-      points: reversedPts,
-      head: { ...p1 },
-      tail: { ...reversedPts[0] },
-      dir: dirObj.name,
-      dirVec: dirObj
-    };
-
-    const testList = arrows.map(a => a.id === candidate.id ? reversedCandidate : a);
-    const sim = solveLevelStepByStep(testList);
-    if (sim.solved) {
-      const testFree = testList.filter(a => canArrowEscape(a, testList));
-      if (testFree.length < free.length && testFree.length >= 1) {
-        arrows = testList;
-        free = testFree;
+      if (i > 0) {
+        const prev = other.points[i - 1];
+        if (dx !== 0 && prev.x === p.x) {
+          const segMinY = Math.min(prev.y, p.y);
+          const segMaxY = Math.max(prev.y, p.y);
+          if (hy >= segMinY && hy <= segMaxY) {
+            const dist = (p.x - hx) * dx;
+            if (dist > 0 && dist < closestDist) {
+              closestDist = dist;
+              closestArrow = other;
+            }
+          }
+        } else if (dy !== 0 && prev.y === p.y) {
+          const segMinX = Math.min(prev.x, p.x);
+          const segMaxX = Math.max(prev.x, p.x);
+          if (hx >= segMinX && hx <= segMaxX) {
+            const dist = (p.y - hy) * dy;
+            if (dist > 0 && dist < closestDist) {
+              closestDist = dist;
+              closestArrow = other;
+            }
+          }
+        }
       }
     }
   }
+  return closestArrow;
+}
 
-  // Strategy 2: Prune excess root arrows from the level until free count <= targetMax
-  let attempts = 0;
-  while (free.length > targetMax && attempts < 150) {
-    attempts++;
-    const excess = free[free.length - 1];
-    const testList = arrows.filter(a => a.id !== excess.id);
-    const sim = solveLevelStepByStep(testList);
-    if (sim.solved) {
-      const testFree = testList.filter(a => canArrowEscape(a, testList));
-      if (testFree.length >= 1) {
-        arrows = testList;
-        free = testFree;
+/**
+ * Checks if a candidate path intersects the escape ray of an established target arrow.
+ */
+function doesPathBlockArrow(path, target) {
+  const hx = target.head.x;
+  const hy = target.head.y;
+  const dx = target.dirVec.dx;
+  const dy = target.dirVec.dy;
+
+  for (let i = 0; i < path.length; i++) {
+    const px = path[i].x;
+    const py = path[i].y;
+    const ox = px - hx;
+    const oy = py - hy;
+    if (dx !== 0 && oy === 0 && (ox * dx > 0)) return true;
+    if (dy !== 0 && ox === 0 && (oy * dy > 0)) return true;
+
+    if (i > 0) {
+      const prev = path[i - 1];
+      if (dx !== 0 && prev.x === px) {
+        const segMinY = Math.min(prev.y, py);
+        const segMaxY = Math.max(prev.y, py);
+        if (hy >= segMinY && hy <= segMaxY) {
+          const dist = (px - hx) * dx;
+          if (dist > 0) return true;
+        }
+      } else if (dy !== 0 && prev.y === py) {
+        const segMinX = Math.min(prev.x, px);
+        const segMaxX = Math.max(prev.x, px);
+        if (hx >= segMinX && hx <= segMaxX) {
+          const dist = (py - hy) * dy;
+          if (dist > 0) return true;
+        }
       }
-    } else {
-      // If removing this one fails, break
-      break;
     }
   }
-
-  return arrows;
+  return false;
 }
 
 /**
  * Generates an Arrow Maze guaranteed 100% solvable with:
- * 1. STRICTLY 1 TO 3 unblocked arrows at any one time (Photo 1).
- * 2. Razor-sharp maze corridors and 90-degree corners.
- * 3. 8 distinct vibrant snake palettes assigned to arrows (Photo 2).
- * 4. True category-specific difficulty and unique shape topologies.
+ * 1. DENSE CORRIDORS filling 80-90%+ of the shape (no empty voids!).
+ * 2. STRICTLY 1 TO 3 unblocked arrows at any one time (Photo 1 & 2 mechanics).
+ * 3. Exact Master Shape models (Lion, Sitting Cat, Standing Cat, Umbrella, Shrimp).
+ * 4. Deep topological DAG dependency trees with ZERO deadlocks.
  */
 export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const catDef = CATEGORIES.find(c => c.id === category) || CATEGORIES[0];
@@ -1349,14 +1502,14 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const baseShape = getCategoryShape(category, num);
 
   // Progressive scaling across levels 1..100
-  const progScale = 1.0 + ((num - 1) / 99) * 0.18;
-  const totalScale = baseShape.isLion ? 1.0 : ((catDef.scale || 1.0) * progScale);
+  const progScale = 1.0 + ((num - 1) / 99) * 0.15;
+  const totalScale = (baseShape.isMasterShape || baseShape.isLion) ? (catDef.scale || 1.0) : ((catDef.scale || 1.0) * progScale);
 
   const width = Math.round(baseShape.width * totalScale);
   const height = Math.round(baseShape.height * totalScale);
   const mask = baseShape.mask;
 
-  const targetArrows = baseShape.isLion ? 48 : Math.round(
+  const targetArrows = (baseShape.isMasterShape || baseShape.isLion) ? (catDef.minArrows + (num % (catDef.maxArrows - catDef.minArrows + 1))) : Math.round(
     catDef.minArrows + ((num - 1) / 99) * (catDef.maxArrows - catDef.minArrows)
   );
 
@@ -1373,249 +1526,184 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
   }
 
-  const targetFillPct = {
-    beginner: 0.72,
-    intermediate: 0.78,
-    advanced: 0.84,
-    expert: 0.88,
-    master: 0.90,
-    hacker: 0.80
-  }[catDef.id] || 0.78;
-  const targetOccupiedCells = Math.min(inShape.length - 2, Math.round(inShape.length * targetFillPct));
-
   const gridPts = new Uint8Array(width * height);
+  const rayGrid = new Uint8Array(width * height);
   const hSeg = new Uint8Array(width * height);
   const vSeg = new Uint8Array(width * height);
-  const rayCellMap = new Map();
 
-  const cx = inShape.reduce((acc, p) => acc + p.x, 0) / inShape.length;
-  const cy = inShape.reduce((acc, p) => acc + p.y, 0) / inShape.length;
+  let availablePoints = inShape.map(p => ({ x: p.x, y: p.y }));
+  const orderedArrows = [];
 
-  let availablePoints = inShape.map(p => ({
-    x: p.x,
-    y: p.y,
-    dist: Math.hypot(p.x - cx, p.y - cy)
-  }));
-  const placedArrows = [];
-  let currentOccupied = 0;
+  // Strictly 1-2 initial free for Expert & Master, 2-3 for other categories
+  const targetStrictFree = (catDef.id === 'expert' || catDef.id === 'master')
+    ? (rng() < 0.65 ? 1 : 2)
+    : (num % 2 === 0 ? 3 : 2);
 
-  function isRayClear(hx, hy, dir) {
-    let curX = hx + dir.dx;
-    let curY = hy + dir.dy;
-    while (curX >= 0 && curX < width && curY >= 0 && curY < height) {
-      const prevX = curX - dir.dx;
-      const prevY = curY - dir.dy;
-      if (dir.dx !== 0) {
-        const minX = Math.min(prevX, curX);
-        if (hSeg[curY * width + minX]) return false;
-      } else {
-        const minY = Math.min(prevY, curY);
-        if (vSeg[minY * width + curX]) return false;
-      }
-      if (gridPts[curY * width + curX]) return false;
-      curX += dir.dx;
-      curY += dir.dy;
-    }
-    return true;
-  }
+  const maxAttempts = targetArrows > 500 ? 120000 : ((catDef.id === 'master' || catDef.id === 'expert') ? 70000 : 45000);
+  let attempts = 0;
 
-  function countUnfilledInRay(hx, hy, dir) {
-    let count = 0;
-    let curX = hx + dir.dx;
-    let curY = hy + dir.dy;
-    while (curX >= 0 && curX < width && curY >= 0 && curY < height) {
-      if (mask(curX, curY, width, height) && !gridPts[curY * width + curX]) {
-        count++;
-      }
-      curX += dir.dx;
-      curY += dir.dy;
-    }
-    return count;
-  }
+  while (attempts < maxAttempts && availablePoints.length > 3 && orderedArrows.length < targetArrows) {
+    attempts++;
+    const startPt = availablePoints[Math.floor(rng() * availablePoints.length)];
+    if (gridPts[startPt.y * width + startPt.x]) continue;
 
-  const maxDirectExits = (catDef.id === 'expert' || catDef.id === 'master') ? 2 : 3;
-  let directExitCount = 0;
+    const path = [{ x: startPt.x, y: startPt.y }];
+    let curPt = { ...startPt };
 
-  const maxTurnsConfig = catDef.maxTurns || 3;
-  const maxSegLenConfig = catDef.id === 'beginner' ? 2 : (catDef.id === 'intermediate' ? 3 : 4);
+    // Adaptive segment lengths: larger snakes initially, compact dominoes as board fills
+    const crowded = orderedArrows.length > (targetArrows * 0.25);
+    const veryCrowded = orderedArrows.length > (targetArrows * 0.55);
+    const maxTurns = veryCrowded ? 1 : (crowded ? 2 : (catDef.maxTurns || 3));
+    const numSegments = veryCrowded ? 1 : (1 + Math.floor(rng() * maxTurns));
+    let lastDir = null;
+    let lastTurnRot = 0;
 
-  const passes = [
-    { mode: 'inner', maxTurns: maxTurnsConfig, maxSeg: maxSegLenConfig, minLen: 3, budgetRatio: 0.40, prioRayBias: 0.70, restrictExit: true },
-    { mode: 'middle', maxTurns: Math.max(2, maxTurnsConfig - 1), maxSeg: 2, minLen: 2, budgetRatio: 0.35, prioRayBias: 0.60, restrictExit: true },
-    { mode: 'outer', maxTurns: 2, maxSeg: 2, minLen: 2, budgetRatio: 0.25, prioRayBias: 0.35, restrictExit: true }
-  ];
-
-  const totalMaxAttempts = {
-    beginner: 18000,
-    intermediate: 24000,
-    advanced: 30000,
-    expert: 38000,
-    master: 45000,
-    hacker: 25000
-  }[catDef.id] || 25000;
-
-  for (const pass of passes) {
-    const passMaxAttempts = Math.round(totalMaxAttempts * pass.budgetRatio);
-    let passAttempts = 0;
-
-    while (
-      passAttempts < passMaxAttempts &&
-      availablePoints.length > 0 &&
-      (placedArrows.length < targetArrows || currentOccupied < targetOccupiedCells)
-    ) {
-      passAttempts++;
-
-      let pool;
-      if (pass.mode === 'inner') {
-        availablePoints.sort((a, b) => a.dist - b.dist);
-        const sliceLen = Math.max(1, Math.floor(availablePoints.length * 0.55));
-        pool = availablePoints.slice(0, sliceLen);
-      } else if (pass.mode === 'middle') {
-        availablePoints.sort((a, b) => a.dist - b.dist);
-        const sStart = Math.floor(availablePoints.length * 0.15);
-        const sEnd = Math.max(sStart + 1, Math.floor(availablePoints.length * 0.85));
-        pool = availablePoints.slice(sStart, sEnd);
-      } else {
-        availablePoints.sort((a, b) => b.dist - a.dist);
-        const sliceLen = Math.max(1, Math.floor(availablePoints.length * 0.75));
-        pool = availablePoints.slice(0, sliceLen);
-      }
-
-      let startPt;
-      const rayPoints = pool.filter(p => rayCellMap.has(p.y * width + p.x));
-      if (rayPoints.length > 0 && rng() < pass.prioRayBias) {
-        startPt = rayPoints[Math.floor(rng() * rayPoints.length)];
-      } else {
-        startPt = pool[Math.floor(rng() * pool.length)];
-      }
-
-      const path = [{ x: startPt.x, y: startPt.y }];
-      let curPt = { ...startPt };
-      const numSegments = 1 + Math.floor(rng() * pass.maxTurns);
-      let lastDir = null;
-      let lastTurnRot = 0;
-
-      for (let seg = 0; seg < numSegments; seg++) {
-        const possibleDirs = DIRS.filter(d => {
-          if (lastDir && d.dx === -lastDir.dx && d.dy === -lastDir.dy) return false;
-          if (lastDir && (d.dx !== lastDir.dx || d.dy !== lastDir.dy)) {
-            const turnRot = getTurnDirection(lastDir, d);
-            if (lastTurnRot !== 0 && turnRot === lastTurnRot) return false;
-          }
-
-          const nx = curPt.x + d.dx;
-          const ny = curPt.y + d.dy;
-          if (!mask(nx, ny, width, height)) return false;
-          if (gridPts[ny * width + nx]) return false;
-          if (d.dx !== 0) {
-            if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) return false;
-          } else {
-            if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) return false;
-          }
-          return true;
-        });
-
-        if (possibleDirs.length === 0) break;
-
-        const chosenDir = possibleDirs[Math.floor(rng() * possibleDirs.length)];
-        if (lastDir && (chosenDir.dx !== lastDir.dx || chosenDir.dy !== lastDir.dy)) {
-          lastTurnRot = getTurnDirection(lastDir, chosenDir);
+    for (let seg = 0; seg < numSegments; seg++) {
+      const possibleDirs = DIRS.filter(d => {
+        if (lastDir && d.dx === -lastDir.dx && d.dy === -lastDir.dy) return false;
+        if (lastDir && (d.dx !== lastDir.dx || d.dy !== lastDir.dy)) {
+          const turnRot = getTurnDirection(lastDir, d);
+          if (lastTurnRot !== 0 && turnRot === lastTurnRot) return false;
         }
 
-        const runLength = 1 + Math.floor(rng() * pass.maxSeg);
-        for (let s = 0; s < runLength; s++) {
-          const nx = curPt.x + chosenDir.dx;
-          const ny = curPt.y + chosenDir.dy;
-          if (!mask(nx, ny, width, height)) break;
-          if (gridPts[ny * width + nx]) break;
-          if (chosenDir.dx !== 0) {
-            if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) break;
-          } else {
-            if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) break;
-          }
-
-          curPt = { x: nx, y: ny };
-          path.push(curPt);
+        const nx = curPt.x + d.dx;
+        const ny = curPt.y + d.dy;
+        if (!mask(nx, ny, width, height)) return false;
+        if (gridPts[ny * width + nx]) return false;
+        if (d.dx !== 0) {
+          if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) return false;
+        } else {
+          if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) return false;
         }
+        return true;
+      });
 
-        lastDir = chosenDir;
+      if (possibleDirs.length === 0) break;
+
+      const chosenDir = possibleDirs[Math.floor(rng() * possibleDirs.length)];
+      if (lastDir && (chosenDir.dx !== lastDir.dx || chosenDir.dy !== lastDir.dy)) {
+        lastTurnRot = getTurnDirection(lastDir, chosenDir);
       }
 
-      if (path.length < pass.minLen) continue;
+      const runLength = veryCrowded ? 1 : (crowded ? (1 + Math.floor(rng() * 2)) : (1 + Math.floor(rng() * 3)));
+      for (let s = 0; s < runLength; s++) {
+        const nx = curPt.x + chosenDir.dx;
+        const ny = curPt.y + chosenDir.dy;
+        if (!mask(nx, ny, width, height)) break;
+        if (gridPts[ny * width + nx]) break;
+        if (chosenDir.dx !== 0) {
+          if (hSeg[curPt.y * width + Math.min(curPt.x, nx)]) break;
+        } else {
+          if (vSeg[Math.min(curPt.y, ny) * width + curPt.x]) break;
+        }
 
-      const head = path[path.length - 1];
-      const headDir = lastDir;
+        curPt = { x: nx, y: ny };
+        path.push(curPt);
+      }
 
-      // Strict Anti-Self-Collision Check
-      if (arrowHitsSelf(path, headDir.name)) {
+      lastDir = chosenDir;
+    }
+
+    if (path.length < 2 || !lastDir) continue;
+
+    // Mathematical DAG Guarantee:
+    // Candidate path must NOT block any earlier-placed arrow!
+    let blocksEarlier = false;
+    for (let i = 0; i < path.length; i++) {
+      if (rayGrid[path[i].y * width + path[i].x]) {
+        blocksEarlier = true;
+        break;
+      }
+    }
+    if (!blocksEarlier) {
+      for (const earlier of orderedArrows) {
+        if (doesPathBlockArrow(path, earlier)) {
+          blocksEarlier = true;
+          break;
+        }
+      }
+    }
+    if (blocksEarlier) continue;
+
+    const h0 = path[path.length - 1];
+    const prev0 = path[path.length - 2];
+    const dir0 = DIRS.find(d => d.dx === (h0.x - prev0.x) && d.dy === (h0.y - prev0.y));
+
+    const h1 = path[0];
+    const prev1 = path[1];
+    const dir1 = DIRS.find(d => d.dx === (h1.x - prev1.x) && d.dy === (h1.y - prev1.y));
+
+    const hit0 = arrowHitsSelf(path, dir0.name);
+    const hit1 = arrowHitsSelf(path.slice().reverse(), dir1.name);
+
+    if (hit0 && hit1) continue;
+
+    const hitArrow0 = getFirstHitArrow(h0.x, h0.y, dir0, orderedArrows);
+    const hitArrow1 = getFirstHitArrow(h1.x, h1.y, dir1, orderedArrows);
+
+    let chosenPath, chosenHead, chosenDir;
+
+    if (orderedArrows.length < targetStrictFree) {
+      // First 1-3 arrows: direct exit out of the shape
+      if (!hit0 && hitArrow0 === null) {
+        chosenPath = path; chosenHead = h0; chosenDir = dir0;
+      } else if (!hit1 && hitArrow1 === null) {
+        chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1;
+      } else {
         continue;
       }
-
-      if (!isRayClear(head.x, head.y, headDir)) {
+    } else {
+      // All subsequent arrows: MUST point directly into an earlier arrow!
+      // This guarantees they are blocked at the start of the game.
+      if (!hit0 && hitArrow0 !== null) {
+        chosenPath = path; chosenHead = h0; chosenDir = dir0;
+      } else if (!hit1 && hitArrow1 !== null) {
+        chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1;
+      } else {
         continue;
       }
+    }
 
-      if (pass.restrictExit) {
-        const unfilledInRay = countUnfilledInRay(head.x, head.y, headDir);
-        if (unfilledInRay === 0) {
-          if (directExitCount >= maxDirectExits && passAttempts < passMaxAttempts * 0.8) {
-            continue;
-          }
-          directExitCount++;
+    const arrow = {
+      id: `arrow_${orderedArrows.length + 1}`,
+      points: chosenPath,
+      head: { ...chosenHead },
+      tail: { ...chosenPath[0] },
+      dir: chosenDir.name,
+      dirVec: chosenDir
+    };
+
+    for (let i = 0; i < chosenPath.length; i++) {
+      gridPts[chosenPath[i].y * width + chosenPath[i].x] = 1;
+      if (i > 0) {
+        const p1 = chosenPath[i - 1];
+        const p2 = chosenPath[i];
+        if (p1.y === p2.y) {
+          hSeg[p1.y * width + Math.min(p1.x, p2.x)] = 1;
+        } else {
+          vSeg[Math.min(p1.y, p2.y) * width + p1.x] = 1;
         }
       }
+    }
 
-      const arrowId = `arrow_${placedArrows.length + 1}`;
-      const arrow = {
-        id: arrowId,
-        points: path,
-        dir: headDir.name,
-        dirVec: headDir,
-        head: { ...head },
-        tail: { ...path[0] }
-      };
+    // Mark escape ray in rayGrid for fast O(1) checks
+    let rx = chosenHead.x + chosenDir.dx;
+    let ry = chosenHead.y + chosenDir.dy;
+    while (rx >= 0 && rx < width && ry >= 0 && ry < height) {
+      rayGrid[ry * width + rx] = 1;
+      rx += chosenDir.dx;
+      ry += chosenDir.dy;
+    }
 
-      for (let i = 0; i < path.length; i++) {
-        gridPts[path[i].y * width + path[i].x] = 1;
-        if (i > 0) {
-          const p1 = path[i - 1];
-          const p2 = path[i];
-          if (p1.y === p2.y) {
-            hSeg[p1.y * width + Math.min(p1.x, p2.x)] = 1;
-          } else {
-            vSeg[Math.min(p1.y, p2.y) * width + p1.x] = 1;
-          }
-        }
-      }
-
-      let rx = head.x + headDir.dx;
-      let ry = head.y + headDir.dy;
-      while (rx >= 0 && rx < width && ry >= 0 && ry < height) {
-        const cell = ry * width + rx;
-        rayCellMap.set(cell, (rayCellMap.get(cell) || 0) + 1);
-        rx += headDir.dx;
-        ry += headDir.dy;
-      }
-
-      placedArrows.push(arrow);
-      currentOccupied += path.length;
+    orderedArrows.push(arrow);
+    if (attempts % 15 === 0) {
       availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
     }
   }
 
-  // Reverse so that initially unblocked root arrows escape first
-  placedArrows.reverse();
-
-  // STRICT 1 TO 3 EXITS GUARANTEE:
-  // Apply our solver-verified strict reducer:
-  // Expert & Master: strictly 1 to 2 initial free arrows!
-  // Beginner, Intermediate, Advanced, Hacker: strictly 2 to 3 initial free arrows!
-  const targetStrictFree = (catDef.id === 'expert' || catDef.id === 'master') ? (rng() < 0.65 ? 1 : 2) : (num % 2 === 0 ? 3 : 2);
-  const strictArrows = pruneToExactStrictFree(placedArrows, width, height, targetStrictFree);
-
   // Assign 8-color snake palettes and uniform clean IDs (or custom shape zoned palette)
-  for (let i = 0; i < strictArrows.length; i++) {
-    const a = strictArrows[i];
+  for (let i = 0; i < orderedArrows.length; i++) {
+    const a = orderedArrows[i];
     a.id = `arrow_${i + 1}`;
     if (typeof baseShape.getArrowPalette === 'function') {
       const pal = baseShape.getArrowPalette(a, width, height);
@@ -1629,10 +1717,10 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   }
 
   // Calculate actual initial free count
-  const initialFreeCount = strictArrows.filter(a => canArrowEscape(a, strictArrows)).length;
+  const initialFreeCount = orderedArrows.filter(a => canArrowEscape(a, orderedArrows)).length;
 
   // Time limit for Hacker mode: ~1.5s per arrow, min 30s, max 95s
-  const timeLimit = catDef.isTimed ? Math.max(30, Math.min(95, Math.round(strictArrows.length * 1.5))) : 0;
+  const timeLimit = catDef.isTimed ? Math.max(30, Math.min(95, Math.round(orderedArrows.length * 1.5))) : 0;
 
   return {
     category: catDef.id,
@@ -1646,8 +1734,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     height,
     shapePoints: inShape,
     initialFreeCount,
-    parMoves: strictArrows.length,
-    arrows: strictArrows
+    parMoves: orderedArrows.length,
+    arrows: orderedArrows
   };
 }
 
