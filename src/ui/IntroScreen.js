@@ -70,68 +70,7 @@ export class IntroScreen {
           <div class="hero-emblem-wrapper">
             <div class="hero-disc-halo"></div>
             <div class="hero-disc-container">
-              <svg class="hero-crown-svg" viewBox="0 0 240 240" width="200" height="200">
-                <defs>
-                  <!-- Disc Radial Gradient -->
-                  <radialGradient id="discGrad" cx="50%" cy="42%" r="62%">
-                    <stop offset="0%" stop-color="#1e2748"/>
-                    <stop offset="68%" stop-color="#12182d"/>
-                    <stop offset="100%" stop-color="#0a0e1c"/>
-                  </radialGradient>
-
-                  <!-- Neon Violet Crown Gradient -->
-                  <linearGradient id="crownGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stop-color="#9333ea"/>
-                    <stop offset="45%" stop-color="#c084fc"/>
-                    <stop offset="100%" stop-color="#fdf4ff"/>
-                  </linearGradient>
-
-                  <filter id="crownSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="3.5" result="blur"/>
-                    <feMerge>
-                      <feMergeNode in="blur"/>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-
-                <!-- Disc Background Surface -->
-                <circle cx="120" cy="120" r="104" fill="url(#discGrad)" stroke="rgba(168, 85, 247, 0.4)" stroke-width="2.2"/>
-                <!-- Subtle Inner Disc Accent Ring -->
-                <circle cx="120" cy="120" r="95" fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1.2"/>
-
-                <!-- Royal Arrow Crown Art -->
-                <g class="crown-art-group" filter="url(#crownSoftGlow)">
-                  <!-- Curved Crown Base Arc -->
-                  <path d="M 50 166 Q 120 196 190 166" fill="none" stroke="url(#crownGrad)" stroke-width="7.5" stroke-linecap="round"/>
-
-                  <!-- 1. Center Arrow (Tallest, 0 deg) -->
-                  <path d="M 120 34 L 137 72 L 124 64 L 124 174 L 116 174 L 116 64 L 103 72 Z" fill="url(#crownGrad)"/>
-
-                  <!-- 2. Mid Left Arrow (Angled outward -14 deg) -->
-                  <g transform="rotate(-14 120 174)">
-                    <path d="M 120 54 L 135 88 L 123.5 81 L 123.5 174 L 116.5 174 L 116.5 81 L 105 88 Z" fill="url(#crownGrad)"/>
-                  </g>
-
-                  <!-- 3. Mid Right Arrow (Angled outward +14 deg) -->
-                  <g transform="rotate(14 120 174)">
-                    <path d="M 120 54 L 135 88 L 123.5 81 L 123.5 174 L 116.5 174 L 116.5 81 L 105 88 Z" fill="url(#crownGrad)"/>
-                  </g>
-
-                  <!-- 4. Outer Left Arrow (Angled outward -28 deg) -->
-                  <g transform="rotate(-28 120 174)">
-                    <path d="M 120 76 L 134 108 L 123 101 L 123 174 L 117 174 L 117 101 L 106 108 Z" fill="url(#crownGrad)"/>
-                  </g>
-
-                  <!-- 5. Outer Right Arrow (Angled outward +28 deg) -->
-                  <g transform="rotate(28 120 174)">
-                    <path d="M 120 76 L 134 108 L 123 101 L 123 174 L 117 174 L 117 101 L 106 108 Z" fill="url(#crownGrad)"/>
-                  </g>
-
-                  <!-- Diamond Jewel Facet in Crown Center Base -->
-                  <polygon points="120,162 130,172 120,182 110,172" fill="url(#crownGrad)" stroke="#ffffff" stroke-width="1.8"/>
-                </g>
-              </svg>
+              <img src="/icon-512.png" alt="Arrow King" class="hero-app-icon-img" />
             </div>
           </div>
 
@@ -370,16 +309,20 @@ export class IntroScreen {
         ctx.shadowBlur = 0;
       }
 
-      this.animFrame = requestAnimationFrame(animate);
+      this.animFrame = requestAnimationFrame(this.animateLoop);
     };
 
-    this.animFrame = requestAnimationFrame(animate);
+    this.animateLoop = animate;
   }
 
   show() {
     this.soundMuted = soundManager.isMuted();
     this.updateSoundIcons();
     this.container.style.display = 'block';
+
+    if (!this.animFrame && this.animateLoop) {
+      this.animFrame = requestAnimationFrame(this.animateLoop);
+    }
   }
 
   hide() {

@@ -257,6 +257,36 @@ class SoundManager {
     });
   }
 
+  /**
+   * Royal crown opening chime fanfare
+   */
+  playRoyalChime() {
+    if (!this.sfxEnabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    // Harmonic chime: E4, B4, E5, G#5, B5, E6 with gentle sparkle
+    const notes = [329.63, 493.88, 659.25, 830.61, 987.77, 1318.51];
+    notes.forEach((freq, idx) => {
+      const startTime = this.ctx.currentTime + idx * 0.09;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.35, startTime + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.9);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + 0.9);
+    });
+  }
+
   // --- AMBIENT NEON SYNTH MUSIC ---
 
   startMusic() {

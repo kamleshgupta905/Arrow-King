@@ -28,6 +28,7 @@ class GameApp {
 
     // DOM containers
     this.canvas = document.getElementById('game-canvas');
+    this.splashContainer = document.getElementById('splash-layer');
     this.introContainer = document.getElementById('intro-layer');
     this.complexityContainer = document.getElementById('complexity-select-layer');
     this.levelSelectContainer = document.getElementById('level-select-layer');
@@ -58,10 +59,41 @@ class GameApp {
     // Initialize UI
     this.initUI();
 
+    // Trigger Animated Opening Splash Screen with Royal Chime
+    this.triggerSplashAnimation();
+
     // Start render loop
     this.lastTime = performance.now();
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
+  }
+
+  triggerSplashAnimation() {
+    if (!this.splashContainer) return;
+
+    // Play royal harmonic fanfare chime
+    try {
+      soundManager.playRoyalChime();
+    } catch (_) {}
+
+    // Allow user to tap to skip splash immediately
+    const skipSplash = () => {
+      if (this.splashDismissed) return;
+      this.splashDismissed = true;
+      this.splashContainer.classList.add('fade-out');
+      setTimeout(() => {
+        if (this.splashContainer) {
+          this.splashContainer.style.display = 'none';
+        }
+      }, 850);
+    };
+
+    this.splashContainer.addEventListener('pointerdown', skipSplash, { once: true });
+
+    // Smooth auto-dismiss after dramatic animated opening (1.8 seconds)
+    setTimeout(() => {
+      skipSplash();
+    }, 1800);
   }
 
   loadProgress() {
