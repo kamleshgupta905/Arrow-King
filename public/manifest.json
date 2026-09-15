@@ -1,0 +1,27 @@
+{
+  "short_name": "Arrow King",
+  "name": "Arrow King - Vector Puzzle Game",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#080b16",
+  "theme_color": "#080b16",
+  "display": "standalone",
+  "orientation": "portrait"
+}

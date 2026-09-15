@@ -7,6 +7,8 @@
  * impact sparks, red wrong-move feedback, and particle bursts.
  */
 
+import { getLevelTheme, drawLevelBackground, drawShapeBoardBackdrop } from './LevelThemes.js';
+
 export class Renderer {
   constructor(canvas, particleSystem) {
     this.canvas = canvas;
@@ -164,56 +166,78 @@ export class Renderer {
     this.animTime += dt;
     const ctx = this.ctx;
 
-    // 1. Sleek dark canvas background matching Photos 2-5
-    ctx.save();
-    ctx.fillStyle = '#0b0f19';
-    ctx.fillRect(0, 0, this.width, this.height);
-
     if (!board || !board.level) {
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, this.width, this.height);
       ctx.restore();
       return;
     }
 
+    const cat = board.level.category || 'beginner';
+    const lvlNum = board.level.levelNumber || 1;
+    const theme = getLevelTheme(cat, lvlNum);
+
+    // 1. Dynamic Colorful Background with 1 of 10 Geometric Art Patterns per level
+    drawLevelBackground(ctx, this.width, this.height, theme, this.animTime);
+
     this.updateTransforms(board.width, board.height);
 
-    // 2. Render subtle shape backdrop (outline removed - shape is formed purely by arrows!)
-    this.drawShapeSilhouette(ctx, board);
+    // 2. Tactile Shape Card Board Backdrop directly behind arrows
+    this.drawBoardBackplate(ctx, board, theme);
 
-    // 3. Render clean dot grid aligned with the shape
-    this.drawDotGrid(ctx, board);
+    // 3. Render clean dot grid aligned with the shape using theme's dot styling
+    this.drawDotGrid(ctx, board, theme);
 
     // 4. Render all active and animating arrows
-    this.drawArrows(ctx, board);
+    this.drawArrows(ctx, board, theme);
 
     // 5. Render particles (ripples, sparks, confetti)
     if (this.particles) {
       this.particles.draw(ctx);
     }
-
-    ctx.restore();
   }
 
   /**
-   * Draws shape backdrop without any outer boundary box/outline.
-   * Sharp shape silhouette is formed purely by the interlocking arrows (Photos 2-5).
+   * Draws a tactile shape card backdrop directly behind the arrow puzzle.
+   * Gives the arrows a clean, elevated plate tailored to the level and complexity theme.
    */
-  drawShapeSilhouette(ctx, board) {
-    // Outer border/box completely removed as requested:
-    // "or jo out line hai usko hata do arrow sa hi sharp shape bana jaisa 2 photo mai daiya gaiya hai"
+  drawBoardBackplate(ctx, board, theme) {
+    const pts = board.shapePoints || [];
+    if (pts.length === 0) return;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of pts) {
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+    }
+
+    const topLeft = this.gridToScreen(minX, minY);
+    const botRight = this.gridToScreen(maxX, maxY);
+    const bounds = {
+      x: topLeft.x - this.cellSize * 0.5,
+      y: topLeft.y - this.cellSize * 0.5,
+      width: (botRight.x - topLeft.x) + this.cellSize,
+      height: (botRight.y - topLeft.y) + this.cellSize
+    };
+
+    drawShapeBoardBackdrop(ctx, bounds, theme, this.zoom);
   }
 
   /**
-   * Draws subtle pin-point dots only inside the shape silhouette, zero outline.
+   * Draws subtle pinpoint dots inside the shape silhouette for grid alignment (Photos 1-5).
    */
-  drawDotGrid(ctx, board) {
+  drawDotGrid(ctx, board, theme) {
     ctx.save();
-    const boardW = board.width;
-    const boardH = board.height;
-    const dotRadius = Math.max(1.0, this.cellSize * 0.045);
-    const shapeSet = new Set(board.shapePoints ? board.shapePoints.map(p => `${p.x},${p.y}`) : []);
+    const dotRadius = Math.max(1.2, this.cellSize * 0.055);
 
-    // Only draw delicate pinpoint dots inside the shape for alignment
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.09)';
+    // Theme-aligned pinpoint dots matching reference images
+    ctx.fillStyle = (theme && theme.shapeCard && theme.shapeCard.dotColor)
+      ? theme.shapeCard.dotColor
+      : 'rgba(15, 23, 42, 0.12)';
+
     for (const p of (board.shapePoints || [])) {
       const pos = this.gridToScreen(p.x, p.y);
       ctx.beginPath();
@@ -222,54 +246,6 @@ export class Renderer {
     }
 
     ctx.restore();
-  }
-
-  /**
-   * Samples points at distance intervals along a polyline to create smooth snake beads (Photo 2).
-   */
-  getBeadsAlongPath(points, beadSpacing) {
-    if (!points || points.length === 0) return [];
-    if (points.length === 1) return [{ ...points[0], isHead: true, isTail: true }];
-
-    const segLengths = [];
-    let totalLen = 0;
-    for (let i = 0; i < points.length - 1; i++) {
-      const d = Math.hypot(points[i+1].x - points[i].x, points[i+1].y - points[i].y);
-      segLengths.push(d);
-      totalLen += d;
-    }
-
-    if (totalLen <= 0) return [{ ...points[0], isHead: true, isTail: true }];
-
-    const beads = [];
-    const numBeads = Math.max(3, Math.round(totalLen / beadSpacing));
-    const step = totalLen / numBeads;
-
-    for (let b = 0; b <= numBeads; b++) {
-      const dist = b * step;
-      let accum = 0;
-      let segIdx = 0;
-      while (segIdx < segLengths.length && accum + segLengths[segIdx] < dist) {
-        accum += segLengths[segIdx];
-        segIdx++;
-      }
-      if (segIdx >= segLengths.length) {
-        beads.push({ ...points[points.length - 1], isHead: b === numBeads, isTail: b === 0 });
-      } else {
-        const p1 = points[segIdx];
-        const p2 = points[segIdx + 1];
-        const segLen = segLengths[segIdx] || 1;
-        const t = Math.max(0, Math.min(1, (dist - accum) / segLen));
-        beads.push({
-          x: p1.x + (p2.x - p1.x) * t,
-          y: p1.y + (p2.y - p1.y) * t,
-          isHead: b === numBeads,
-          isTail: b === 0
-        });
-      }
-    }
-
-    return beads;
   }
 
   /**
@@ -340,157 +316,18 @@ export class Renderer {
   }
 
   /**
-   * Renders the animated colorful segmented snake with cartoon googly eyes (Photo 2).
-   */
-  drawSnake(ctx, arrow, screenPoints, headScreen, dx, dy, opacity, isDizzy = false) {
-    if (!screenPoints || screenPoints.length < 2) return;
-
-    ctx.save();
-    ctx.globalAlpha = opacity;
-
-    const cell = this.cellSize;
-    const pal = arrow.palette || {
-      body: arrow.color || '#0084ff',
-      light: '#5ac8fa',
-      shadow: '#0055c4',
-      eye: '#ffffff',
-      pupil: '#07162c'
-    };
-
-    // 1. Calculate beads along the slithering path
-    const beadSpacing = Math.max(7, cell * 0.44);
-    const beads = this.getBeadsAlongPath(screenPoints, beadSpacing);
-    const baseRadius = Math.max(5, cell * 0.38);
-
-    // 2. Draw body segments / beads from tail to head
-    for (let i = 0; i < beads.length; i++) {
-      const b = beads[i];
-      let r = baseRadius;
-
-      // Tail taper: first 3 segments taper down
-      if (i === 0) {
-        r = baseRadius * 0.38;
-      } else if (i === 1) {
-        r = baseRadius * 0.62;
-      } else if (i === 2) {
-        r = baseRadius * 0.82;
-      }
-
-      // Head segment is slightly larger
-      if (b.isHead) {
-        r = baseRadius * 1.12;
-      }
-
-      // 3D glossy radial gradient (Photo 2 bubble beads)
-      const grad = ctx.createRadialGradient(
-        b.x - r * 0.32,
-        b.y - r * 0.32,
-        r * 0.10,
-        b.x,
-        b.y,
-        r
-      );
-      grad.addColorStop(0, pal.light);
-      grad.addColorStop(0.68, pal.body);
-      grad.addColorStop(1, pal.shadow);
-
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // Subtle contour ring around each bead (Photo 2 caterpillar look)
-      ctx.strokeStyle = pal.shadow;
-      ctx.lineWidth = Math.max(1.2, cell * 0.038);
-      ctx.stroke();
-    }
-
-    // 3. Draw Head & Cartoon Googly Eyes
-    const head = beads[beads.length - 1];
-    const headR = baseRadius * 1.12;
-
-    // Perpendicular vector for placing left & right eyes
-    const perpX = -dy;
-    const perpY = dx;
-    const eyeSpacing = headR * 0.52;
-    const eyeR = Math.max(2.8, headR * 0.42);
-
-    const forwardShift = headR * 0.28;
-    const eyeCenterX = head.x + dx * forwardShift;
-    const eyeCenterY = head.y + dy * forwardShift;
-
-    const eye1 = {
-      x: eyeCenterX + perpX * eyeSpacing,
-      y: eyeCenterY + perpY * eyeSpacing
-    };
-    const eye2 = {
-      x: eyeCenterX - perpX * eyeSpacing,
-      y: eyeCenterY - perpY * eyeSpacing
-    };
-
-    const drawSingleEye = (eyePos) => {
-      // Eyeball white
-      ctx.beginPath();
-      ctx.arc(eyePos.x, eyePos.y, eyeR, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = Math.max(1.2, eyeR * 0.24);
-      ctx.stroke();
-
-      if (isDizzy) {
-        // Dizzy cartoon cross eye
-        const crossSize = eyeR * 0.55;
-        ctx.beginPath();
-        ctx.moveTo(eyePos.x - crossSize, eyePos.y - crossSize);
-        ctx.lineTo(eyePos.x + crossSize, eyePos.y + crossSize);
-        ctx.moveTo(eyePos.x + crossSize, eyePos.y - crossSize);
-        ctx.lineTo(eyePos.x - crossSize, eyePos.y + crossSize);
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineWidth = Math.max(1.5, eyeR * 0.3);
-        ctx.stroke();
-      } else {
-        // Dark pupil looking in travel direction
-        const pupilR = eyeR * 0.52;
-        const pupilOffset = eyeR * 0.32;
-        const px = eyePos.x + dx * pupilOffset;
-        const py = eyePos.y + dy * pupilOffset;
-
-        ctx.beginPath();
-        ctx.arc(px, py, pupilR, 0, Math.PI * 2);
-        ctx.fillStyle = pal.pupil || '#0f172a';
-        ctx.fill();
-
-        // White catchlight sparkle dot
-        ctx.beginPath();
-        ctx.arc(px - pupilR * 0.35, py - pupilR * 0.35, pupilR * 0.38, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-      }
-    };
-
-    drawSingleEye(eye1);
-    drawSingleEye(eye2);
-
-    ctx.restore();
-  }
-
-  /**
    * Draws all active arrows:
-   * - Sharp 90-degree maze vectors on the board (Photo 1 sharp geometry).
-   * - Vibrantly transforms into animated segmented snake with googly eyes on escape/collision (Photo 2).
+   * - Bold, razor-sharp black 90-degree maze vectors on clean white canvas (Photos 1-5).
+   * - Vibrant Red blocked feedback with smooth forward-thud & recoil (Photo 5 Dog level).
+   * - Smooth glide-off escape animation.
    */
-  drawArrows(ctx, board) {
+  drawArrows(ctx, board, theme) {
     ctx.save();
 
-    const lineWidth = Math.max(3.6, this.cellSize * 0.14);
-    ctx.lineWidth = lineWidth;
-    ctx.lineCap = 'square';
-    ctx.lineJoin = 'miter';
-    ctx.miterLimit = 4;
-
-    const headLength = Math.max(10, this.cellSize * 0.38);
-    const headWidth = Math.max(9, this.cellSize * 0.34);
+    // High visibility line width that scales with cell size
+    const lineWidth = Math.max(2.8, Math.min(6.2, this.cellSize * 0.19));
+    const headLength = Math.max(9, Math.min(22, this.cellSize * 0.44));
+    const headWidth = Math.max(8, Math.min(18, this.cellSize * 0.40));
 
     for (const arrow of board.arrows) {
       if (arrow.isEscaped) continue;
@@ -504,17 +341,17 @@ export class Renderer {
 
       // 1. Calculate impact shudder on a blocker that was hit
       if (arrow.impactShudder > 0) {
-        const shudder = Math.sin(arrow.impactShudder * 50) * (arrow.impactShudder * 10);
+        const shudder = Math.sin(arrow.impactShudder * 50) * (arrow.impactShudder * 8);
         bumpOffsetX += (-dy) * shudder;
         bumpOffsetY += dx * shudder;
       }
 
-      // 2. Realistic slithering:
+      // 2. Realistic path movement on escape or collision
       let gridPoints = arrow.points;
       let gridHead = arrow.points[arrow.points.length - 1];
 
       if (arrow.isEscaping) {
-        const totalExitDist = Math.max(board.width, board.height) * 1.4;
+        const totalExitDist = Math.max(board.width, board.height) * 1.5;
         let bodyLength = 0;
         for (let i = 0; i < arrow.points.length - 1; i++) {
           bodyLength += Math.hypot(arrow.points[i+1].x - arrow.points[i].x, arrow.points[i+1].y - arrow.points[i].y);
@@ -526,7 +363,7 @@ export class Renderer {
         const slither = this.getSlitheringPath(arrow, board, forwardDist);
         gridPoints = slither.points;
         gridHead = slither.head;
-        opacity = Math.max(0, 1 - Math.pow(arrow.escapeProgress, 3));
+        opacity = Math.max(0, 1 - Math.pow(arrow.escapeProgress, 2.5));
       } else if (arrow.isColliding) {
         const p = arrow.collisionProgress;
         let forwardDist = 0;
@@ -564,39 +401,37 @@ export class Renderer {
       const tipX = headScreen.x + bumpOffsetX;
       const tipY = headScreen.y + bumpOffsetY;
 
-      // When clicked to escape or colliding: BECOMES THE ANIMATED SEGMENTED SNAKE (Photo 2)!
-      if (arrow.isEscaping || arrow.isColliding) {
-        this.drawSnake(
-          ctx,
-          arrow,
-          screenPoints,
-          headScreen,
-          dx,
-          dy,
-          opacity,
-          arrow.isColliding && arrow.hasImpacted
-        );
-        continue;
-      }
+      // Color scheme:
+      // Default: Deep crisp black on light themes, brilliant diamond white on dark hacker mode
+      // Blocked / Impacted: Vibrant Crimson Red
+      // Hint: Radiant Emerald Green / Cyan
+      let strokeColor = (theme && theme.arrowColor) ? theme.arrowColor : '#0f172a';
 
-      // 3. Stationary arrow on board: Razor-sharp 90-degree maze vector (Photo 1)
-      let strokeColor = arrow.color || '#181e28';
-
-      if (arrow.isHighlighted || arrow.id === board.hoveredArrowId) {
-        strokeColor = '#e63946'; // Vibrant Red feedback
+      if (arrow.isColliding || arrow.isHighlighted || arrow.id === board.hoveredArrowId) {
+        strokeColor = (theme && theme.impactColor) ? theme.impactColor : '#ef4444';
       } else if (arrow.id === board.hintArrowId) {
         const pulse = 0.5 + 0.5 * Math.sin(this.animTime * 8);
-        strokeColor = pulse > 0.5 ? '#10b981' : '#f59e0b';
+        strokeColor = pulse > 0.5
+          ? ((theme && theme.hintColor) ? theme.hintColor : '#10b981')
+          : (theme && theme.accentColor ? theme.accentColor : '#8b5cf6');
       }
 
+      ctx.save();
       ctx.globalAlpha = opacity;
+
+      // Glowing neon cyber glow on dark hacker mode
+      if (theme && theme.isDark) {
+        ctx.shadowColor = (arrow.isColliding || arrow.isHighlighted) ? '#ff0055' : theme.accentColor;
+        ctx.shadowBlur = 7;
+      }
+
       ctx.strokeStyle = strokeColor;
       ctx.fillStyle = strokeColor;
-      ctx.lineCap = 'square';
-      ctx.lineJoin = 'miter';
-      ctx.miterLimit = 4;
+      ctx.lineWidth = (arrow.isColliding || arrow.isHighlighted) ? lineWidth * 1.15 : lineWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
 
-      // Draw razor-sharp polyline body: stop right at base of arrowhead
+      // Draw polyline body
       if (screenPoints.length >= 2) {
         ctx.beginPath();
         ctx.moveTo(screenPoints[0].x, screenPoints[0].y);
@@ -605,13 +440,13 @@ export class Renderer {
           ctx.lineTo(screenPoints[i].x, screenPoints[i].y);
         }
 
-        const baseEndX = tipX - dx * (headLength * 0.75);
-        const baseEndY = tipY - dy * (headLength * 0.75);
+        const baseEndX = tipX - dx * (headLength * 0.70);
+        const baseEndY = tipY - dy * (headLength * 0.70);
         ctx.lineTo(baseEndX, baseEndY);
         ctx.stroke();
       }
 
-      // Draw razor-sharp arrowhead at tip (Photo 1)
+      // Draw razor-sharp arrowhead at tip (Photos 1-5)
       this.drawArrowHead(
         ctx,
         tipX,
@@ -621,6 +456,8 @@ export class Renderer {
         headWidth,
         strokeColor
       );
+
+      ctx.restore();
     }
 
     ctx.restore();
@@ -633,8 +470,7 @@ export class Renderer {
     ctx.save();
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
-    ctx.lineJoin = 'miter';
-    ctx.miterLimit = 4;
+    ctx.lineJoin = 'round';
 
     let angle = 0;
     if (dir === 'RIGHT') angle = 0;
@@ -648,10 +484,10 @@ export class Renderer {
     ctx.beginPath();
     ctx.moveTo(0, 0); // Razor-sharp tip at (0, 0)
     ctx.lineTo(-headLength, -headWidth / 2);
+    ctx.lineTo(-headLength * 0.75, 0); // Inward notch
     ctx.lineTo(-headLength, headWidth / 2);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
 
     ctx.restore();
   }

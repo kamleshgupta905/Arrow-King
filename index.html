@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#080b16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>Arrow King - 600 Vector Puzzle Levels & Hacker Mode</title>
-  <meta name="description" content="Arrow King: The ultimate vector arrow puzzle game. Escape 600 handcrafted levels across 6 categories without collisions, including fast-paced timed Hacker mode.">
+  <title>Arrow King - Vector Arrow Puzzle Game</title>
+  <meta name="description" content="Arrow King: The ultimate vector arrow puzzle game. Escape handcrafted shape levels across categories without collisions, including fast-paced timed Hacker mode.">
+
+  <!-- App PNG Icons & Manifest (No SVG) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +31,10 @@
     <!-- Opening Animation & Title Layer -->
     <div id="intro-layer" class="ui-layer"></div>
 
-    <!-- 50-Level Selection Screen Layer -->
+    <!-- Difficulty / Complexity Selection Screen Layer -->
+    <div id="complexity-select-layer" class="ui-layer" style="display: none;"></div>
+
+    <!-- Level Selection Screen Layer -->
     <div id="level-select-layer" class="ui-layer" style="display: none;"></div>
 
     <!-- In-Game HUD (Level name, moves, par, undo, hint, pause) -->

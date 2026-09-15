@@ -9,8 +9,10 @@ import { Renderer } from './engine/Renderer.js';
 import { Board } from './engine/Board.js';
 import { InputManager } from './engine/InputManager.js';
 import { getLevel, CATEGORIES } from './levels/LevelData.js';
+import { getLevelTheme } from './engine/LevelThemes.js';
 
 import { IntroScreen } from './ui/IntroScreen.js';
+import { ComplexitySelect } from './ui/ComplexitySelect.js';
 import { LevelSelect } from './ui/LevelSelect.js';
 import { HUD } from './ui/HUD.js';
 import { VictoryModal } from './ui/VictoryModal.js';
@@ -27,6 +29,7 @@ class GameApp {
     // DOM containers
     this.canvas = document.getElementById('game-canvas');
     this.introContainer = document.getElementById('intro-layer');
+    this.complexityContainer = document.getElementById('complexity-select-layer');
     this.levelSelectContainer = document.getElementById('level-select-layer');
     this.hudContainer = document.getElementById('hud-layer');
     this.modalContainer = document.getElementById('modal-layer');
@@ -109,52 +112,49 @@ class GameApp {
     // 1. Intro Screen
     this.intro = new IntroScreen(
       this.introContainer,
-      () => {
-        const cat = this.currentCategory || 'beginner';
-        const lvl = (this.progress.unlocked && this.progress.unlocked[cat]) || 1;
-        this.startLevel(cat, lvl);
-      },
-      () => this.showLevelSelect()
+      () => this.showComplexitySelect(),
+      () => this.showComplexitySelect(),
+      () => this.settingsModal.show()
     );
 
-    // 2. Level Select Screen
-    this.levelSelect = new LevelSelect(
-      this.levelSelectContainer,
-      (cat, lvl) => this.startLevel(cat, lvl),
+    // 2. Dedicated Complexity / Difficulty Select Screen
+    this.complexitySelect = new ComplexitySelect(
+      this.complexityContainer,
+      (catId) => this.showLevelSelect(catId),
       () => this.showIntro()
     );
 
-    // 3. In-Game HUD
+    // 3. Level Select Screen
+    this.levelSelect = new LevelSelect(
+      this.levelSelectContainer,
+      (cat, lvl) => this.startLevel(cat, lvl),
+      () => this.showComplexitySelect()
+    );
+
+    // 4. In-Game HUD
     this.hud = new HUD(this.hudContainer, {
-      onBack: () => this.showLevelSelect(),
+      onBack: () => this.showLevelSelect(this.currentCategory),
       onPause: () => this.settingsModal.show(),
       onUndo: () => this.board.undo(),
       onHint: () => this.board.getHint(),
-      onRestart: () => this.board.restart(),
-      onZoomIn: () => this.renderer.zoomIn(),
-      onZoomOut: () => this.renderer.zoomOut(),
-      onZoomReset: () => this.renderer.resetZoom()
+      onRestart: () => this.board.restart()
     });
 
-    this.renderer.onZoomChange = (factor) => {
-      this.hud.setZoomBadge(factor);
-    };
-
-    // 4. Modals
+    // 5. Modals
     this.victoryModal = new VictoryModal(this.modalContainer, {
       onNextLevel: () => this.handleNextLevel(),
       onReplay: () => this.board.restart(),
-      onLevelSelect: () => this.showLevelSelect()
+      onLevelSelect: () => this.showLevelSelect(this.currentCategory)
     });
 
     this.completeModal = new CompleteModal(this.modalContainer, {
-      onLevelSelect: () => this.showLevelSelect()
+      onLevelSelect: () => this.showComplexitySelect()
     });
 
     this.settingsModal = new SettingsModal(this.modalContainer, {
       onResume: () => {},
       onRestart: () => this.board.restart(),
-      onLevelSelect: () => this.showLevelSelect()
+      onLevelSelect: () => this.showLevelSelect(this.currentCategory)
     });
 
     // Initial state: show Intro
@@ -162,7 +162,9 @@ class GameApp {
   }
 
   showIntro() {
+    soundManager.stopMusic();
     this.intro.show();
+    this.complexitySelect.hide();
     this.levelSelect.hide();
     this.hud.hide();
     this.victoryModal.hide();
@@ -171,14 +173,30 @@ class GameApp {
     this.canvas.style.display = 'none';
   }
 
-  showLevelSelect() {
+  showComplexitySelect() {
+    soundManager.stopMusic();
     this.intro.hide();
+    this.levelSelect.hide();
     this.hud.hide();
     this.victoryModal.hide();
     this.completeModal.hide();
     this.settingsModal.hide();
     this.canvas.style.display = 'none';
-    this.levelSelect.show(this.progress);
+    this.complexitySelect.show(this.progress);
+  }
+
+  showLevelSelect(categoryOrNum) {
+    soundManager.stopMusic();
+    const cat = (typeof categoryOrNum === 'string') ? categoryOrNum : (this.currentCategory || 'beginner');
+    this.currentCategory = cat;
+    this.intro.hide();
+    this.complexitySelect.hide();
+    this.hud.hide();
+    this.victoryModal.hide();
+    this.completeModal.hide();
+    this.settingsModal.hide();
+    this.canvas.style.display = 'none';
+    this.levelSelect.show(this.progress, cat);
   }
 
   startLevel(categoryOrNum = 'beginner', levelNum = 1) {
@@ -193,16 +211,16 @@ class GameApp {
       num = levelNum;
     }
 
-    // Star requirement check: Expert (40★), Master (60★)
+    // Star requirement check: Expert (25★), Master (45★)
     const totalStars = Object.values(this.progress.stars || {}).reduce((sum, s) => sum + (typeof s === 'number' ? s : 0), 0);
-    if (cat === 'expert' && totalStars < 40) {
-      console.warn(`Expert level locked: requires 40 stars (currently ${totalStars})`);
-      this.showLevelSelect();
+    if (cat === 'expert' && totalStars < 25) {
+      console.warn(`Expert level locked: requires 25 stars (currently ${totalStars})`);
+      this.showComplexitySelect();
       return;
     }
-    if (cat === 'master' && totalStars < 60) {
-      console.warn(`Master level locked: requires 60 stars (currently ${totalStars})`);
-      this.showLevelSelect();
+    if (cat === 'master' && totalStars < 45) {
+      console.warn(`Master level locked: requires 45 stars (currently ${totalStars})`);
+      this.showComplexitySelect();
       return;
     }
 
@@ -210,6 +228,7 @@ class GameApp {
     this.currentLevelNum = Math.max(1, Math.min(100, num));
 
     this.intro.hide();
+    this.complexitySelect.hide();
     this.levelSelect.hide();
     this.victoryModal.hide();
     this.completeModal.hide();
@@ -217,15 +236,19 @@ class GameApp {
     this.canvas.style.display = 'block';
     this.hud.show();
 
+    soundManager.startMusic();
+
     this.renderer.resize();
     this.renderer.resetZoom();
     const levelData = getLevel(this.currentCategory, this.currentLevelNum);
     this.board.loadLevel(levelData);
 
+    const theme = getLevelTheme(this.currentCategory, this.currentLevelNum);
     this.hud.updateLevelInfo(
       levelData.levelNumber,
       levelData.shapeName,
-      levelData.categoryName
+      levelData.categoryName,
+      theme
     );
     this.hud.updateTimer(this.board.timeRemaining, this.board.isTimed);
     this.hud.updateAvailablePaths(this.board.currentlyUnblockedCount);
@@ -289,4 +312,14 @@ class GameApp {
 // Instantiate on DOM load
 window.addEventListener('DOMContentLoaded', () => {
   window.gameApp = new GameApp();
+});
+
+// Pause/stop audio when app is minimized, locked, or backgrounded
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    soundManager.stopMusic();
+    if (soundManager.ctx && soundManager.ctx.state === 'running') {
+      soundManager.ctx.suspend().catch(() => {});
+    }
+  }
 });

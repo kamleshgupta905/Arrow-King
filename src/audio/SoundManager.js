@@ -274,10 +274,37 @@ class SoundManager {
       clearTimeout(this.ambientTimer);
       this.ambientTimer = null;
     }
+
+    // Instantly silence and disconnect all active chords
+    if (this.activeMusicGains) {
+      this.activeMusicGains.forEach(gain => {
+        try {
+          if (this.ctx) {
+            gain.gain.setValueAtTime(gain.gain.value, this.ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + 0.06);
+          }
+          setTimeout(() => gain.disconnect(), 80);
+        } catch (_) {}
+      });
+      this.activeMusicGains = [];
+    }
+
+    if (this.activeMusicOscs) {
+      this.activeMusicOscs.forEach(osc => {
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch (_) {}
+      });
+      this.activeMusicOscs = [];
+    }
   }
 
   scheduleAmbientMusic() {
     if (!this.isMusicPlaying || !this.musicEnabled) return;
+
+    this.activeMusicGains = this.activeMusicGains || [];
+    this.activeMusicOscs = this.activeMusicOscs || [];
 
     // Relaxing dream chords: Am9 -> Fmaj7 -> Cmaj7 -> Gsus4
     const chords = [
@@ -311,6 +338,7 @@ class SoundManager {
       chordGain.connect(this.ctx.destination);
       filter.connect(chordGain);
 
+      const currentOscs = [];
       chord.forEach(freq => {
         const osc = this.ctx.createOscillator();
         osc.type = 'sine';
@@ -318,7 +346,22 @@ class SoundManager {
         osc.connect(filter);
         osc.start();
         osc.stop(this.ctx.currentTime + 4.5);
+        this.activeMusicOscs.push(osc);
+        currentOscs.push(osc);
       });
+
+      setTimeout(() => {
+        if (this.activeMusicGains) {
+          const gIdx = this.activeMusicGains.indexOf(chordGain);
+          if (gIdx !== -1) this.activeMusicGains.splice(gIdx, 1);
+        }
+        if (this.activeMusicOscs) {
+          currentOscs.forEach(o => {
+            const oIdx = this.activeMusicOscs.indexOf(o);
+            if (oIdx !== -1) this.activeMusicOscs.splice(oIdx, 1);
+          });
+        }
+      }, 5000);
 
       this.ambientTimer = setTimeout(playChord, 4200);
     };
@@ -341,6 +384,25 @@ class SoundManager {
       this.stopMusic();
     }
     return this.musicEnabled;
+  }
+
+  toggleMute() {
+    const isCurrentlyMuted = !this.sfxEnabled && !this.musicEnabled;
+    if (isCurrentlyMuted) {
+      this.sfxEnabled = true;
+      this.musicEnabled = true;
+      this.startMusic();
+    } else {
+      this.sfxEnabled = false;
+      this.musicEnabled = false;
+      this.stopMusic();
+    }
+    this.saveSettings();
+    return !this.sfxEnabled; // true if muted
+  }
+
+  isMuted() {
+    return !this.sfxEnabled && !this.musicEnabled;
   }
 }
 

@@ -1,103 +1,286 @@
 /**
  * IntroScreen.js - Arrow King
- * Ultra-professional home screen with a dynamic opening animation:
- * 5 precision vector arrows glide in and lock into an iconic Royal Arrow Crown emblem,
- * accompanied by subtle particle shimmer and sleek tactile controls.
+ * Faithful recreation of the luxurious royal neon-violet home screen:
+ * - Top bar with Crown icon + "Arrow King" branding and sound/settings controls
+ * - Hero glowing disc with the iconic 5-Arrow Royal Crown emblem & diamond jewel facet
+ * - "ARROW KING" typography with "Master the sequence. Clear the board. Claim the crown."
+ * - 3-column stats capsule: Vector Puzzle (Mode), 0 Collisions (Best), Hacker Mode (Special)
+ * - Neon purple "PLAY GAME" button and frosted glass "LEVEL SELECT" button
+ * - Footer with sound toggle and v1.0.0 • Offline Ready
+ * - Atmospheric vector scenery with mountain peak, flagpole, pines, and layered hills
  */
 
 import { soundManager } from '../audio/SoundManager.js';
 
 export class IntroScreen {
-  constructor(container, onPlayCallback, onLevelSelectCallback) {
+  constructor(container, onPlayCallback, onLevelSelectCallback, onSettingsCallback) {
     this.container = container;
     this.onPlay = onPlayCallback;
     this.onLevelSelect = onLevelSelectCallback;
+    this.onSettings = onSettingsCallback;
     this.animFrame = null;
-    this.soundMuted = false;
+    this.soundMuted = soundManager.isMuted();
 
     this.render();
   }
 
   render() {
     this.container.innerHTML = `
-      <div class="intro-screen king-intro">
-        <div class="intro-animation-container">
-          <canvas id="intro-canvas"></canvas>
-          
-          <div class="intro-content king-content">
-            <div class="king-badge">
-              <span class="badge-crown">👑</span>
-              <span>ROYAL VECTOR PUZZLE</span>
-            </div>
+      <div class="intro-screen royal-theme">
+        <!-- Background Ambient Sparkle Canvas -->
+        <canvas id="intro-particles-canvas" class="intro-bg-canvas"></canvas>
 
-            <h1 class="king-title">
-              <span class="text-white">ARROW</span>
-              <span class="text-gold">KING</span>
-            </h1>
-
-            <p class="king-subtitle">Master the sequence. Clear the board. Claim the crown.</p>
-
-            <div class="king-features-strip">
-              <div class="feature-chip">
-                <span class="chip-icon">🎯</span>
-                <span>Vector Puzzle</span>
-              </div>
-              <div class="feature-chip">
-                <span class="chip-icon">🛡️</span>
-                <span>0 Collisions</span>
-              </div>
-              <div class="feature-chip chip-hacker">
-                <span class="chip-icon">⚡</span>
-                <span>Hacker Mode</span>
-              </div>
-            </div>
-
-            <div class="intro-buttons king-buttons">
-              <button id="btn-intro-play" class="btn btn-king-primary" aria-label="Start Game">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                  <polygon points="6 4 20 12 6 20 6 4"/>
-                </svg>
-                <span>PLAY GAME</span>
-              </button>
-
-              <button id="btn-intro-levels" class="btn btn-king-secondary" aria-label="Select Level">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-                  <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-                  <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-                  <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-                </svg>
-                <span>LEVEL SELECT</span>
-              </button>
-            </div>
-
-            <div class="king-footer-bar">
-              <button id="btn-king-sound" class="icon-toggle-btn" title="Toggle Sound" aria-label="Sound Toggle">
-                <svg id="sound-icon-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                </svg>
-                <svg id="sound-icon-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                  <line x1="23" y1="9" x2="17" y2="15"/>
-                  <line x1="17" y1="9" x2="23" y2="15"/>
-                </svg>
-              </button>
-              <span class="king-version-tag">v1.0.0 • Offline Ready</span>
+        <!-- Top Header Navigation Bar -->
+        <header class="intro-top-header">
+          <div class="header-brand">
+            <svg class="brand-crown-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M2 19h20v2H2zM3 7l4 6 5-8 5 8 4-6v10H3z"/>
+            </svg>
+            <div class="brand-title">
+              <span class="brand-arrow">Arrow</span>
+              <span class="brand-king">King</span>
             </div>
           </div>
+
+          <div class="header-controls">
+            <button id="btn-top-sound" class="header-icon-btn" title="Toggle Sound" aria-label="Toggle Sound">
+              <svg class="sound-icon-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="${this.soundMuted ? 'display:none;' : 'display:block;'}">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+              <svg class="sound-icon-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="${this.soundMuted ? 'display:block;' : 'display:none;'}">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+              </svg>
+            </button>
+
+            <button id="btn-top-settings" class="header-icon-btn" title="Settings" aria-label="Settings">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Center Content -->
+        <main class="intro-main-body">
+          <!-- The Glowing Crown Emblem Badge -->
+          <div class="hero-emblem-wrapper">
+            <div class="hero-disc-halo"></div>
+            <div class="hero-disc-container">
+              <svg class="hero-crown-svg" viewBox="0 0 240 240" width="200" height="200">
+                <defs>
+                  <!-- Disc Radial Gradient -->
+                  <radialGradient id="discGrad" cx="50%" cy="42%" r="62%">
+                    <stop offset="0%" stop-color="#1e2748"/>
+                    <stop offset="68%" stop-color="#12182d"/>
+                    <stop offset="100%" stop-color="#0a0e1c"/>
+                  </radialGradient>
+
+                  <!-- Neon Violet Crown Gradient -->
+                  <linearGradient id="crownGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stop-color="#9333ea"/>
+                    <stop offset="45%" stop-color="#c084fc"/>
+                    <stop offset="100%" stop-color="#fdf4ff"/>
+                  </linearGradient>
+
+                  <filter id="crownSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3.5" result="blur"/>
+                    <feMerge>
+                      <feMergeNode in="blur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <!-- Disc Background Surface -->
+                <circle cx="120" cy="120" r="104" fill="url(#discGrad)" stroke="rgba(168, 85, 247, 0.4)" stroke-width="2.2"/>
+                <!-- Subtle Inner Disc Accent Ring -->
+                <circle cx="120" cy="120" r="95" fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1.2"/>
+
+                <!-- Royal Arrow Crown Art -->
+                <g class="crown-art-group" filter="url(#crownSoftGlow)">
+                  <!-- Curved Crown Base Arc -->
+                  <path d="M 50 166 Q 120 196 190 166" fill="none" stroke="url(#crownGrad)" stroke-width="7.5" stroke-linecap="round"/>
+
+                  <!-- 1. Center Arrow (Tallest, 0 deg) -->
+                  <path d="M 120 34 L 137 72 L 124 64 L 124 174 L 116 174 L 116 64 L 103 72 Z" fill="url(#crownGrad)"/>
+
+                  <!-- 2. Mid Left Arrow (Angled outward -14 deg) -->
+                  <g transform="rotate(-14 120 174)">
+                    <path d="M 120 54 L 135 88 L 123.5 81 L 123.5 174 L 116.5 174 L 116.5 81 L 105 88 Z" fill="url(#crownGrad)"/>
+                  </g>
+
+                  <!-- 3. Mid Right Arrow (Angled outward +14 deg) -->
+                  <g transform="rotate(14 120 174)">
+                    <path d="M 120 54 L 135 88 L 123.5 81 L 123.5 174 L 116.5 174 L 116.5 81 L 105 88 Z" fill="url(#crownGrad)"/>
+                  </g>
+
+                  <!-- 4. Outer Left Arrow (Angled outward -28 deg) -->
+                  <g transform="rotate(-28 120 174)">
+                    <path d="M 120 76 L 134 108 L 123 101 L 123 174 L 117 174 L 117 101 L 106 108 Z" fill="url(#crownGrad)"/>
+                  </g>
+
+                  <!-- 5. Outer Right Arrow (Angled outward +28 deg) -->
+                  <g transform="rotate(28 120 174)">
+                    <path d="M 120 76 L 134 108 L 123 101 L 123 174 L 117 174 L 117 101 L 106 108 Z" fill="url(#crownGrad)"/>
+                  </g>
+
+                  <!-- Diamond Jewel Facet in Crown Center Base -->
+                  <polygon points="120,162 130,172 120,182 110,172" fill="url(#crownGrad)" stroke="#ffffff" stroke-width="1.8"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Hero Titles -->
+          <div class="intro-titles-block">
+            <h1 class="hero-game-title">
+              <span class="title-arrow">ARROW</span>
+              <span class="title-king">KING</span>
+            </h1>
+            <p class="hero-game-subtitle">Master the sequence. Clear the board.<br>Claim the crown.</p>
+          </div>
+
+          <!-- 3-Segment Capsule Strip -->
+          <div class="features-capsule-strip">
+            <div class="capsule-segment">
+              <div class="capsule-icon icon-violet">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <circle cx="12" cy="12" r="9"/>
+                  <circle cx="12" cy="12" r="5"/>
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="capsule-info">
+                <span class="info-primary">Vector Puzzle</span>
+                <span class="info-secondary">Mode</span>
+              </div>
+            </div>
+
+            <div class="capsule-separator"></div>
+
+            <div class="capsule-segment">
+              <div class="capsule-icon icon-coral">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
+                  <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
+                </svg>
+              </div>
+              <div class="capsule-info">
+                <span class="info-primary">0 Collisions</span>
+                <span class="info-secondary">Best</span>
+              </div>
+            </div>
+
+            <div class="capsule-separator"></div>
+
+            <div class="capsule-segment">
+              <div class="capsule-icon icon-magenta">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+              </div>
+              <div class="capsule-info">
+                <span class="info-primary">Hacker Mode</span>
+                <span class="info-secondary">Special</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons Group -->
+          <div class="intro-actions-group">
+            <button id="btn-intro-play" class="btn-hero-primary" aria-label="Play Game">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <polygon points="7 4 20 12 7 20 7 4"/>
+              </svg>
+              <span>PLAY GAME</span>
+            </button>
+
+            <button id="btn-intro-levels" class="btn-hero-secondary" aria-label="Choose Difficulty">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              </svg>
+              <span>CHOOSE DIFFICULTY</span>
+              <svg class="action-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Bottom Sound & Offline Ready Bar -->
+          <div class="intro-footer-bar">
+            <button id="btn-footer-sound" class="footer-sound-btn" title="Toggle Sound">
+              <svg class="sound-icon-on" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="${this.soundMuted ? 'display:none;' : 'display:block;'}">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+              <svg class="sound-icon-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="${this.soundMuted ? 'display:block;' : 'display:none;'}">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+              </svg>
+            </button>
+            <span class="footer-divider">|</span>
+            <span class="footer-version-tag">v1.0.0 • Offline Ready</span>
+          </div>
+        </main>
+
+        <!-- Mountain & Pine Tree Scenery Silhouettes at Bottom -->
+        <div class="intro-bottom-scenery">
+          <svg class="scenery-svg" viewBox="0 0 420 160" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sceneryAtmosphere" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="transparent"/>
+                <stop offset="50%" stop-color="rgba(168, 85, 247, 0.08)"/>
+                <stop offset="100%" stop-color="rgba(147, 51, 234, 0.18)"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Atmospheric Ambient Glow -->
+            <rect x="0" y="0" width="420" height="160" fill="url(#sceneryAtmosphere)"/>
+
+            <!-- Mountain Peak on Right with Flagpole -->
+            <path d="M 285 160 L 366 52 L 435 160 Z" fill="#1d163a"/>
+            <!-- Summit Flagpole & Flag -->
+            <line x1="366" y1="52" x2="366" y2="34" stroke="#7e6c9e" stroke-width="1.6"/>
+            <polygon points="366,36 382,43 366,50" fill="#c084fc"/>
+
+            <!-- Mid Layer Mountain Slope & Hills -->
+            <path d="M -20 160 Q 80 95 210 130 Q 305 92 440 160 Z" fill="#16112e"/>
+
+            <!-- Silhouette Pine Trees on Ridges -->
+            <polygon points="76,114 69,132 83,132" fill="#110d24"/>
+            <polygon points="88,110 81,130 95,130" fill="#110d24"/>
+            <polygon points="100,116 94,132 106,132" fill="#110d24"/>
+            
+            <polygon points="314,104 306,126 322,126" fill="#110d24"/>
+            <polygon points="328,108 321,128 335,128" fill="#110d24"/>
+            <polygon points="385,110 378,130 392,130" fill="#110d24"/>
+
+            <!-- Foreground Rolling Ground Layers -->
+            <path d="M -30 160 Q 150 115 450 160 Z" fill="#0d0a1b"/>
+            <path d="M 0 160 Q 210 134 420 160 Z" fill="#070612"/>
+          </svg>
+          <div class="bottom-home-indicator"></div>
         </div>
       </div>
     `;
 
-    this.initCanvasAnimation();
+    this.initCanvasEffects();
     this.bindEvents();
   }
 
   bindEvents() {
     const playBtn = this.container.querySelector('#btn-intro-play');
     const levelsBtn = this.container.querySelector('#btn-intro-levels');
-    const soundBtn = this.container.querySelector('#btn-king-sound');
+    const topSoundBtn = this.container.querySelector('#btn-top-sound');
+    const footerSoundBtn = this.container.querySelector('#btn-footer-sound');
+    const settingsBtn = this.container.querySelector('#btn-top-settings');
 
     playBtn?.addEventListener('click', () => {
       soundManager.playTap();
@@ -110,29 +293,37 @@ export class IntroScreen {
     levelsBtn?.addEventListener('click', () => {
       soundManager.playTap();
       soundManager.initContext();
-      soundManager.startMusic();
       this.hide();
       if (this.onLevelSelect) this.onLevelSelect();
     });
 
-    soundBtn?.addEventListener('click', () => {
+    const handleSoundToggle = () => {
       this.soundMuted = soundManager.toggleMute();
-      const onIcon = this.container.querySelector('#sound-icon-on');
-      const offIcon = this.container.querySelector('#sound-icon-off');
-      if (onIcon && offIcon) {
-        onIcon.style.display = this.soundMuted ? 'none' : 'block';
-        offIcon.style.display = this.soundMuted ? 'block' : 'none';
-      }
+      this.updateSoundIcons();
+    };
+
+    topSoundBtn?.addEventListener('click', handleSoundToggle);
+    footerSoundBtn?.addEventListener('click', handleSoundToggle);
+
+    settingsBtn?.addEventListener('click', () => {
+      soundManager.playTap();
+      if (this.onSettings) this.onSettings();
     });
   }
 
-  /**
-   * Opening Royal Crown animation:
-   * 5 precision arrows glide inward, locking into an interlocking Crown formation.
-   * Subtle golden shimmer particles disperse when the crown locks.
-   */
-  initCanvasAnimation() {
-    const canvas = this.container.querySelector('#intro-canvas');
+  updateSoundIcons() {
+    const onIcons = this.container.querySelectorAll('.sound-icon-on');
+    const offIcons = this.container.querySelectorAll('.sound-icon-off');
+    onIcons.forEach(icon => {
+      icon.style.display = this.soundMuted ? 'none' : 'block';
+    });
+    offIcons.forEach(icon => {
+      icon.style.display = this.soundMuted ? 'block' : 'none';
+    });
+  }
+
+  initCanvasEffects() {
+    const canvas = this.container.querySelector('#intro-particles-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
@@ -143,171 +334,40 @@ export class IntroScreen {
     resize();
     window.addEventListener('resize', resize);
 
-    // 5 Arrows forming the 5 Crown peaks
-    // Crown target relative offsets from center:
-    const crownPeaks = [
-      { x: -54, y: -8,  angle: -0.35, length: 34, color: '#f59e0b' },
-      { x: -28, y: -26, angle: -0.18, length: 44, color: '#f59e0b' },
-      { x: 0,   y: -44, angle: 0,     length: 52, color: '#fbbf24' }, // Central highest peak
-      { x: 28,  y: -26, angle: 0.18,  length: 44, color: '#f59e0b' },
-      { x: 54,  y: -8,  angle: 0.35,  length: 34, color: '#f59e0b' }
-    ];
-
-    // Initial state: arrows start far away from different angles
-    const arrows = crownPeaks.map((peak, idx) => {
-      const spawnAngle = (idx - 2) * 0.7 - Math.PI / 2;
-      const spawnDist = 280 + idx * 30;
-      return {
-        ...peak,
-        currentX: Math.cos(spawnAngle) * spawnDist,
-        currentY: Math.sin(spawnAngle) * spawnDist,
-        progress: 0,
-        delay: idx * 0.12,
-        locked: false
-      };
-    });
-
-    // Shimmer particles emitted upon crown lock
+    // Subtle drifting stars/particles in the night sky
     const particles = [];
-    let hasEmittedSparks = false;
-    let animTime = 0;
+    const count = 32;
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight * 0.7,
+        radius: 0.8 + Math.random() * 1.5,
+        alpha: 0.2 + Math.random() * 0.6,
+        speed: 0.15 + Math.random() * 0.35,
+        pulseSpeed: 0.02 + Math.random() * 0.03
+      });
+    }
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      const cy = canvas.height * 0.26; // Crown center anchor
 
-      animTime += 0.016;
-
-      // Draw subtle background dot grid
-      ctx.fillStyle = '#334155';
-      const gridSize = 28;
-      const startX = cx - 140;
-      const startY = cy - 90;
-      for (let x = startX; x <= startX + 280; x += gridSize) {
-        for (let y = startY; y <= startY + 160; y += gridSize) {
-          ctx.beginPath();
-          ctx.arc(x, y, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // Idle crown gentle hovering after locked
-      const hoverY = Math.sin(animTime * 2.2) * 4;
-
-      // Draw Crown Base Arc
-      const baseAlpha = Math.min(1, Math.max(0, (animTime - 0.8) * 2));
-      if (baseAlpha > 0) {
-        ctx.save();
-        ctx.strokeStyle = `rgba(245, 158, 11, ${baseAlpha * 0.85})`;
-        ctx.lineWidth = 3.5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        // Slightly curved crown base
-        ctx.moveTo(cx - 62, cy + 18 + hoverY);
-        ctx.quadraticCurveTo(cx, cy + 24 + hoverY, cx + 62, cy + 18 + hoverY);
-        ctx.stroke();
-
-        // 3 Base Jewels
-        ctx.fillStyle = `rgba(56, 189, 248, ${baseAlpha})`;
-        for (const jx of [-36, 0, 36]) {
-          ctx.beginPath();
-          ctx.arc(cx + jx, cy + 21 + hoverY, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-
-      let allLocked = true;
-
-      // Animate and draw each crown arrow
-      for (let i = 0; i < arrows.length; i++) {
-        const a = arrows[i];
-        if (animTime > a.delay) {
-          a.progress = Math.min(1, a.progress + 0.035);
-        } else {
-          allLocked = false;
-        }
-
-        // Cubic ease out
-        const ease = 1 - Math.pow(1 - a.progress, 3);
-
-        const targetX = a.x;
-        const targetY = a.y + hoverY;
-
-        const curX = cx + a.currentX * (1 - ease) + targetX * ease;
-        const curY = cy + a.currentY * (1 - ease) + targetY * ease;
-        const curAngle = a.angle * ease + (1 - ease) * (a.angle - 0.8);
-
-        if (a.progress < 1) allLocked = false;
-
-        // Render arrow body
-        ctx.save();
-        ctx.translate(curX, curY);
-        ctx.rotate(curAngle);
-
-        ctx.strokeStyle = a.color;
-        ctx.fillStyle = a.color;
-        ctx.lineWidth = i === 2 ? 4.5 : 3.8; // Central arrow is thicker
-        ctx.lineCap = 'round';
-
-        // Stem
-        ctx.beginPath();
-        ctx.moveTo(0, a.length / 2);
-        ctx.lineTo(0, -a.length / 2);
-        ctx.stroke();
-
-        // Sharp Royal Arrowhead
-        const headSize = i === 2 ? 14 : 11;
-        ctx.beginPath();
-        ctx.moveTo(0, -a.length / 2 - 4);
-        ctx.lineTo(-headSize * 0.65, -a.length / 2 + headSize * 0.7);
-        ctx.lineTo(0, -a.length / 2 + headSize * 0.35);
-        ctx.lineTo(headSize * 0.65, -a.length / 2 + headSize * 0.7);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
-      }
-
-      // Trigger sparkle burst once crown locks
-      if (allLocked && !hasEmittedSparks) {
-        hasEmittedSparks = true;
-        for (let i = 0; i < 28; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 1.5 + Math.random() * 3.5;
-          particles.push({
-            x: cx + (Math.random() - 0.5) * 80,
-            y: cy + (Math.random() - 0.5) * 30,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 0.8,
-            life: 1.0,
-            color: Math.random() > 0.4 ? '#f59e0b' : '#38bdf8',
-            size: 2 + Math.random() * 2.5
-          });
-        }
-      }
-
-      // Draw and update sparkle particles
-      for (let i = particles.length - 1; i >= 0; i--) {
+      for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.05; // gravity
-        p.life -= 0.02;
+        p.alpha += Math.sin(Date.now() * 0.002 * p.pulseSpeed) * 0.008;
+        p.y -= p.speed * 0.25;
 
-        if (p.life <= 0) {
-          particles.splice(i, 1);
-          continue;
+        if (p.y < 0) {
+          p.y = canvas.height * 0.7;
+          p.x = Math.random() * canvas.width;
         }
 
-        ctx.save();
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(192, 132, 252, ${Math.max(0.1, Math.min(0.85, p.alpha))})`;
+        ctx.shadowColor = '#c084fc';
+        ctx.shadowBlur = 4;
         ctx.fill();
-        ctx.restore();
+        ctx.shadowBlur = 0;
       }
 
       this.animFrame = requestAnimationFrame(animate);
@@ -317,6 +377,8 @@ export class IntroScreen {
   }
 
   show() {
+    this.soundMuted = soundManager.isMuted();
+    this.updateSoundIcons();
     this.container.style.display = 'block';
   }
 

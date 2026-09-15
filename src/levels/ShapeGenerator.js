@@ -27,12 +27,12 @@ export const SNAKE_PALETTES = [
 ];
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, minArrows: 20, maxArrows: 32, maxTurns: 2, scale: 1.0 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, minArrows: 650, maxArrows: 700, maxTurns: 3, scale: 15.0 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, minArrows: 800, maxArrows: 850, maxTurns: 4, scale: 16.5 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, minArrows: 950, maxArrows: 1000, maxTurns: 4, scale: 12.5 },
-  { id: 'master', name: 'Master', levelsCount: 100, minArrows: 950, maxArrows: 1000, maxTurns: 4, scale: 12.0 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, minArrows: 30, maxArrows: 50, maxTurns: 3, scale: 1.2, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 2 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.10, maxTurns: 3 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.18, maxTurns: 3 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.25, maxTurns: 4 },
+  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.32, maxTurns: 4 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.10, maxTurns: 3, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -1390,7 +1390,7 @@ function solveLevelStepByStep(arrows) {
 }
 
 /**
- * Checks which arrow in activeArrows is hit first by ray (hx, hy, dir).
+ * Checks which arrow in activeArrows is hit first by ray (hx, hy, dir) and returns arrow & distance.
  */
 function getFirstHitArrow(hx, hy, dir, activeArrows) {
   let closestDist = Infinity;
@@ -1445,25 +1445,32 @@ function getFirstHitArrow(hx, hy, dir, activeArrows) {
       }
     }
   }
-  return closestArrow;
+  return { arrow: closestArrow, dist: closestDist };
 }
 
 /**
- * Checks if a candidate path intersects the escape ray of an established target arrow.
+ * Checks if a candidate path intersects the active clear corridor of an established target arrow.
  */
 function doesPathBlockArrow(path, target) {
   const hx = target.head.x;
   const hy = target.head.y;
   const dx = target.dirVec.dx;
   const dy = target.dirVec.dy;
+  const maxDist = target.impactDist || 999;
 
   for (let i = 0; i < path.length; i++) {
     const px = path[i].x;
     const py = path[i].y;
     const ox = px - hx;
     const oy = py - hy;
-    if (dx !== 0 && oy === 0 && (ox * dx > 0)) return true;
-    if (dy !== 0 && ox === 0 && (oy * dy > 0)) return true;
+    if (dx !== 0 && oy === 0) {
+      const dist = ox * dx;
+      if (dist > 0 && dist < maxDist) return true;
+    }
+    if (dy !== 0 && ox === 0) {
+      const dist = oy * dy;
+      if (dist > 0 && dist < maxDist) return true;
+    }
 
     if (i > 0) {
       const prev = path[i - 1];
@@ -1472,14 +1479,14 @@ function doesPathBlockArrow(path, target) {
         const segMaxY = Math.max(prev.y, py);
         if (hy >= segMinY && hy <= segMaxY) {
           const dist = (px - hx) * dx;
-          if (dist > 0) return true;
+          if (dist > 0 && dist < maxDist) return true;
         }
       } else if (dy !== 0 && prev.y === py) {
         const segMinX = Math.min(prev.x, px);
         const segMaxX = Math.max(prev.x, px);
         if (hx >= segMinX && hx <= segMaxX) {
           const dist = (py - hy) * dy;
-          if (dist > 0) return true;
+          if (dist > 0 && dist < maxDist) return true;
         }
       }
     }
@@ -1503,15 +1510,11 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
 
   // Progressive scaling across levels 1..100
   const progScale = 1.0 + ((num - 1) / 99) * 0.15;
-  const totalScale = (baseShape.isMasterShape || baseShape.isLion) ? (catDef.scale || 1.0) : ((catDef.scale || 1.0) * progScale);
+  const totalScale = catDef.scale || 1.0;
 
   const width = Math.round(baseShape.width * totalScale);
   const height = Math.round(baseShape.height * totalScale);
   const mask = baseShape.mask;
-
-  const targetArrows = (baseShape.isMasterShape || baseShape.isLion) ? (catDef.minArrows + (num % (catDef.maxArrows - catDef.minArrows + 1))) : Math.round(
-    catDef.minArrows + ((num - 1) / 99) * (catDef.maxArrows - catDef.minArrows)
-  );
 
   const seed = (catDef.id.charCodeAt(0) * 10007) + (num * 1013) + (baseShape.id * 73);
   const rng = pseudoRandom(seed);
@@ -1526,6 +1529,11 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
   }
 
+  // Exactly as many arrows as required for this shape:
+  // Fills ~65-72% of the shape neatly without bulk or lag
+  const shapeArea = inShape.length;
+  const targetArrows = Math.max(12, Math.min(48, Math.round((shapeArea * 0.68) / 3.4)));
+
   const gridPts = new Uint8Array(width * height);
   const rayGrid = new Uint8Array(width * height);
   const hSeg = new Uint8Array(width * height);
@@ -1539,7 +1547,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     ? (rng() < 0.65 ? 1 : 2)
     : (num % 2 === 0 ? 3 : 2);
 
-  const maxAttempts = targetArrows > 500 ? 120000 : ((catDef.id === 'master' || catDef.id === 'expert') ? 70000 : 45000);
+  const maxAttempts = 18000;
   let attempts = 0;
 
   while (attempts < maxAttempts && availablePoints.length > 3 && orderedArrows.length < targetArrows) {
@@ -1607,7 +1615,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     if (path.length < 2 || !lastDir) continue;
 
     // Mathematical DAG Guarantee:
-    // Candidate path must NOT block any earlier-placed arrow!
+    // Candidate path must NOT block any earlier-placed arrow's active corridor!
     let blocksEarlier = false;
     for (let i = 0; i < path.length; i++) {
       if (rayGrid[path[i].y * width + path[i].x]) {
@@ -1638,27 +1646,26 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
 
     if (hit0 && hit1) continue;
 
-    const hitArrow0 = getFirstHitArrow(h0.x, h0.y, dir0, orderedArrows);
-    const hitArrow1 = getFirstHitArrow(h1.x, h1.y, dir1, orderedArrows);
+    const hitRes0 = getFirstHitArrow(h0.x, h0.y, dir0, orderedArrows);
+    const hitRes1 = getFirstHitArrow(h1.x, h1.y, dir1, orderedArrows);
 
-    let chosenPath, chosenHead, chosenDir;
+    let chosenPath, chosenHead, chosenDir, chosenImpactDist;
 
     if (orderedArrows.length < targetStrictFree) {
       // First 1-3 arrows: direct exit out of the shape
-      if (!hit0 && hitArrow0 === null) {
-        chosenPath = path; chosenHead = h0; chosenDir = dir0;
-      } else if (!hit1 && hitArrow1 === null) {
-        chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1;
+      if (!hit0 && hitRes0.arrow === null) {
+        chosenPath = path; chosenHead = h0; chosenDir = dir0; chosenImpactDist = 999;
+      } else if (!hit1 && hitRes1.arrow === null) {
+        chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1; chosenImpactDist = 999;
       } else {
         continue;
       }
     } else {
       // All subsequent arrows: MUST point directly into an earlier arrow!
-      // This guarantees they are blocked at the start of the game.
-      if (!hit0 && hitArrow0 !== null) {
-        chosenPath = path; chosenHead = h0; chosenDir = dir0;
-      } else if (!hit1 && hitArrow1 !== null) {
-        chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1;
+      if (!hit0 && hitRes0.arrow !== null) {
+        chosenPath = path; chosenHead = h0; chosenDir = dir0; chosenImpactDist = hitRes0.dist;
+      } else if (!hit1 && hitRes1.arrow !== null) {
+        chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1; chosenImpactDist = hitRes1.dist;
       } else {
         continue;
       }
@@ -1670,7 +1677,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
       head: { ...chosenHead },
       tail: { ...chosenPath[0] },
       dir: chosenDir.name,
-      dirVec: chosenDir
+      dirVec: chosenDir,
+      impactDist: chosenImpactDist
     };
 
     for (let i = 0; i < chosenPath.length; i++) {
@@ -1686,13 +1694,16 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
       }
     }
 
-    // Mark escape ray in rayGrid for fast O(1) checks
+    // Mark ONLY the active clear corridor in rayGrid (stops at impact blocker or board edge)
     let rx = chosenHead.x + chosenDir.dx;
     let ry = chosenHead.y + chosenDir.dy;
-    while (rx >= 0 && rx < width && ry >= 0 && ry < height) {
+    const maxRayDist = chosenImpactDist < 900 ? chosenImpactDist : Math.max(width, height);
+    let step = 0;
+    while (step < maxRayDist && rx >= 0 && rx < width && ry >= 0 && ry < height) {
       rayGrid[ry * width + rx] = 1;
       rx += chosenDir.dx;
       ry += chosenDir.dy;
+      step++;
     }
 
     orderedArrows.push(arrow);

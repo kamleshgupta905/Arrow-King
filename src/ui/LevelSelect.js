@@ -16,13 +16,18 @@ export class LevelSelect {
     this.onBack = onBackCallback;
 
     this.activeCategory = 'beginner';
-    this.activeRangeIndex = 0; // 0: 1-20, 1: 21-40, 2: 41-60, 3: 61-80, 4: 81-100
+    this.activeRangeIndex = 0; // 0: 1-10, 1: 11-20, ... 9: 91-100
     this.ranges = [
-      [1, 20],
-      [21, 40],
-      [41, 60],
-      [61, 80],
-      [81, 100]
+      [1, 10],
+      [11, 20],
+      [21, 30],
+      [31, 40],
+      [41, 50],
+      [51, 60],
+      [61, 70],
+      [71, 80],
+      [81, 90],
+      [91, 100]
     ];
   }
 
@@ -31,48 +36,40 @@ export class LevelSelect {
     const unlockedMap = this.progressData.unlocked || {};
     const starsMap = this.progressData.stars || {};
 
-    const totalStars = this.calculateTotalStars(starsMap);
+    const cat = CATEGORIES.find(c => c.id === this.activeCategory) || CATEGORIES[0];
+    const catStars = this.calculateCategoryStars(starsMap, this.activeCategory);
+    const catMaxStars = (cat.levelsCount || 30) * 3;
+    const catIcon = {
+      beginner: '🟢',
+      intermediate: '🟡',
+      advanced: '🟠',
+      expert: '🔴',
+      master: '🟣',
+      hacker: '⚡'
+    }[cat.id] || '🔹';
 
     this.container.innerHTML = `
-      <div class="level-select-screen flat-style">
+      <div class="level-select-screen royal-theme">
         <header class="level-select-header">
-          <button id="btn-ls-back" class="icon-btn-flat" aria-label="Back">
+          <button id="btn-ls-back" class="icon-btn-royal" aria-label="Back to Difficulty">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-          <div class="header-center">
-            <h2 class="ls-title">SELECT LEVEL</h2>
+          <div class="header-center-royal">
+            <div class="ls-cat-badge">
+              <span class="ls-cat-icon">${catIcon}</span>
+              <h2 class="ls-title">${cat.name.toUpperCase()}</h2>
+            </div>
             <div class="ls-progress-badge">
               <span class="star-icon">★</span>
-              <span>${totalStars} / 1800 Stars</span>
+              <span>${catStars} / ${catMaxStars} Stars</span>
             </div>
           </div>
           <div style="width: 42px;"></div>
         </header>
 
-        <!-- Category Selector Tabs -->
-        <div class="category-tabs-bar" id="category-tabs-bar">
-          ${CATEGORIES.map(cat => {
-            const icon = {
-              beginner: '🟢',
-              intermediate: '🟡',
-              advanced: '🟠',
-              expert: '🔴',
-              master: '🟣',
-              hacker: '⚡'
-            }[cat.id] || '🔹';
-            const lockInfo = this.getCategoryLockInfo(cat.id, totalStars);
-            return `
-              <button class="category-tab-btn ${cat.id === this.activeCategory ? 'active' : ''} ${cat.id === 'hacker' ? 'hacker-tab' : ''} ${lockInfo.isLocked ? 'cat-locked' : ''}" data-cat="${cat.id}">
-                <span class="cat-label">${icon} ${cat.name} ${lockInfo.isLocked ? `<span class="tab-lock-badge">🔒 ${lockInfo.label}</span>` : ''}</span>
-                <span class="cat-count">${lockInfo.isLocked ? `Need ${lockInfo.requiredStars}★` : '100 Lvl'}</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- Range Sub-Tabs (1-20, 21-40, 41-60, 61-80, 81-100) -->
+        <!-- Range Sub-Tabs (1-10, 11-20, 21-30) -->
         <div class="range-tabs-bar" id="range-tabs-bar">
           ${this.ranges.map((r, idx) => `
             <button class="range-tab-btn ${idx === this.activeRangeIndex ? 'active' : ''}" data-range="${idx}">
@@ -95,11 +92,11 @@ export class LevelSelect {
   }
 
   getCategoryLockInfo(catId, totalStars) {
-    if (catId === 'expert' && totalStars < 40) {
-      return { isLocked: true, requiredStars: 40, label: '40★' };
+    if (catId === 'expert' && totalStars < 25) {
+      return { isLocked: true, requiredStars: 25, label: '25★' };
     }
-    if (catId === 'master' && totalStars < 60) {
-      return { isLocked: true, requiredStars: 60, label: '60★' };
+    if (catId === 'master' && totalStars < 45) {
+      return { isLocked: true, requiredStars: 45, label: '45★' };
     }
     return { isLocked: false, requiredStars: 0, label: '' };
   }
@@ -195,16 +192,15 @@ export class LevelSelect {
     // Render previews progressively in small batches without blocking the UI thread
     this.renderCardPreviewsProgressively(rangeMeta);
 
-    // Ultra-responsive touch-tolerant event listeners for unlocked cards
+    // Clean touch-friendly click listeners for unlocked cards
     let hasSelected = false;
 
     gridBody.querySelectorAll('.level-card-flat.unlocked').forEach(card => {
-      let startX = 0;
-      let startY = 0;
-      let isPressed = false;
       const lvl = parseInt(card.dataset.level, 10);
 
-      const triggerSelect = () => {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (hasSelected) return;
         hasSelected = true;
         this.cancelPreviewRendering();
@@ -213,30 +209,6 @@ export class LevelSelect {
         if (this.onSelectLevel) {
           this.onSelectLevel(this.activeCategory, lvl);
         }
-      };
-
-      card.addEventListener('pointerdown', (e) => {
-        startX = e.clientX;
-        startY = e.clientY;
-        isPressed = true;
-      });
-
-      card.addEventListener('pointerup', (e) => {
-        if (!isPressed) return;
-        isPressed = false;
-        const dx = Math.abs(e.clientX - startX);
-        const dy = Math.abs(e.clientY - startY);
-        if (dx < 14 && dy < 14) {
-          triggerSelect();
-        }
-      });
-
-      card.addEventListener('pointercancel', () => {
-        isPressed = false;
-      });
-
-      card.addEventListener('click', () => {
-        triggerSelect();
       });
     });
   }
@@ -286,7 +258,7 @@ export class LevelSelect {
     const w = canvas.width;
     const h = canvas.height;
 
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#080b18';
     ctx.fillRect(0, 0, w, h);
 
     const boardW = levelData.width;
@@ -297,7 +269,7 @@ export class LevelSelect {
     const offsetY = (h - boardH * cellSize) / 2;
 
     // Draw subtle grid dots
-    ctx.fillStyle = '#e2e8f0';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
     for (let y = 1; y < boardH; y += 2) {
       for (let x = 1; x < boardW; x += 2) {
         ctx.beginPath();
@@ -353,43 +325,49 @@ export class LevelSelect {
   bindEvents() {
     const backBtn = this.container.querySelector('#btn-ls-back');
     if (backBtn) {
-      backBtn.addEventListener('click', () => {
+      backBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         soundManager.playTap();
         this.hide();
         if (this.onBack) this.onBack();
       });
     }
 
-    // Category tabs
-    const catBtns = this.container.querySelectorAll('.category-tab-btn');
-    catBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        catBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.activeCategory = btn.dataset.cat;
-        soundManager.playTap();
-        this.populateGrid();
-      });
-    });
-
     // Range tabs
     const rangeBtns = this.container.querySelectorAll('.range-tab-btn');
     rangeBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rIdx = parseInt(btn.dataset.range, 10);
+        if (this.activeRangeIndex === rIdx) return;
         rangeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        this.activeRangeIndex = parseInt(btn.dataset.range, 10);
+        this.activeRangeIndex = rIdx;
         soundManager.playTap();
-        this.populateGrid();
+        setTimeout(() => this.populateGrid(), 40);
       });
     });
   }
 
   calculateTotalStars(starsMap) {
-    return Object.values(starsMap).reduce((sum, s) => sum + (typeof s === 'number' ? s : 0), 0);
+    return Object.values(starsMap || {}).reduce((sum, s) => sum + (typeof s === 'number' ? s : 0), 0);
   }
 
-  show(progressData) {
+  calculateCategoryStars(starsMap, catId) {
+    let sum = 0;
+    const prefix = `${catId}_`;
+    for (const [key, val] of Object.entries(starsMap || {})) {
+      if (key.startsWith(prefix) && typeof val === 'number') {
+        sum += val;
+      }
+    }
+    return sum;
+  }
+
+  show(progressData, categoryId) {
+    if (categoryId) this.activeCategory = categoryId;
     this.render(progressData);
     this.container.style.display = 'block';
   }
