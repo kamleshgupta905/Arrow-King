@@ -1456,7 +1456,7 @@ function doesPathBlockArrow(path, target) {
   const hy = target.head.y;
   const dx = target.dirVec.dx;
   const dy = target.dirVec.dy;
-  const maxDist = target.impactDist || 999;
+  const maxDist = 999999;
 
   for (let i = 0; i < path.length; i++) {
     const px = path[i].x;
@@ -1694,10 +1694,10 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
       }
     }
 
-    // Mark ONLY the active clear corridor in rayGrid (stops at impact blocker or board edge)
+    // Mark active clear corridor in rayGrid all the way to board edge
     let rx = chosenHead.x + chosenDir.dx;
     let ry = chosenHead.y + chosenDir.dy;
-    const maxRayDist = chosenImpactDist < 900 ? chosenImpactDist : Math.max(width, height);
+    const maxRayDist = Math.max(width, height);
     let step = 0;
     while (step < maxRayDist && rx >= 0 && rx < width && ry >= 0 && ry < height) {
       rayGrid[ry * width + rx] = 1;

@@ -249,6 +249,189 @@ export class Renderer {
   }
 
   /**
+   * Samples points at distance intervals along a polyline to create smooth snake beads.
+   */
+  getBeadsAlongPath(points, beadSpacing) {
+    if (!points || points.length === 0) return [];
+    if (points.length === 1) return [{ ...points[0], isHead: true, isTail: true }];
+
+    const segLengths = [];
+    let totalLen = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+      const d = Math.hypot(points[i+1].x - points[i].x, points[i+1].y - points[i].y);
+      segLengths.push(d);
+      totalLen += d;
+    }
+
+    if (totalLen <= 0) return [{ ...points[0], isHead: true, isTail: true }];
+
+    const beads = [];
+    const numBeads = Math.max(3, Math.round(totalLen / beadSpacing));
+    const step = totalLen / numBeads;
+
+    for (let b = 0; b <= numBeads; b++) {
+      const dist = b * step;
+      let accum = 0;
+      let segIdx = 0;
+      while (segIdx < segLengths.length && accum + segLengths[segIdx] < dist) {
+        accum += segLengths[segIdx];
+        segIdx++;
+      }
+      if (segIdx >= segLengths.length) {
+        beads.push({ ...points[points.length - 1], isHead: b === numBeads, isTail: b === 0 });
+      } else {
+        const p1 = points[segIdx];
+        const p2 = points[segIdx + 1];
+        const segLen = segLengths[segIdx] || 1;
+        const t = Math.max(0, Math.min(1, (dist - accum) / segLen));
+        beads.push({
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t,
+          isHead: b === numBeads,
+          isTail: b === 0
+        });
+      }
+    }
+    return beads;
+  }
+
+  /**
+   * Renders the animated colorful segmented snake with cartoon googly eyes when escaping or colliding.
+   */
+  drawSnake(ctx, arrow, screenPoints, headScreen, dx, dy, opacity, isDizzy = false) {
+    if (!screenPoints || screenPoints.length < 2) return;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+
+    const cell = this.cellSize;
+    const pal = arrow.palette || {
+      body: arrow.color || '#0084ff',
+      light: '#5ac8fa',
+      shadow: '#0055c4',
+      eye: '#ffffff',
+      pupil: '#07162c'
+    };
+
+    // 1. Calculate beads along the slithering path
+    const beadSpacing = Math.max(7, cell * 0.44);
+    const beads = this.getBeadsAlongPath(screenPoints, beadSpacing);
+    const baseRadius = Math.max(5, cell * 0.38);
+
+    // 2. Draw body segments / beads from tail to head
+    for (let i = 0; i < beads.length; i++) {
+      const b = beads[i];
+      let r = baseRadius;
+
+      // Tail taper: first 3 segments taper down
+      if (i === 0) {
+        r = baseRadius * 0.38;
+      } else if (i === 1) {
+        r = baseRadius * 0.62;
+      } else if (i === 2) {
+        r = baseRadius * 0.82;
+      }
+
+      // Head segment is slightly larger
+      if (b.isHead) {
+        r = baseRadius * 1.12;
+      }
+
+      // 3D glossy radial gradient (bubble beads)
+      const grad = ctx.createRadialGradient(
+        b.x - r * 0.32,
+        b.y - r * 0.32,
+        r * 0.10,
+        b.x,
+        b.y,
+        r
+      );
+      grad.addColorStop(0, pal.light);
+      grad.addColorStop(0.68, pal.body);
+      grad.addColorStop(1, pal.shadow);
+
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Subtle contour ring around each bead
+      ctx.strokeStyle = pal.shadow;
+      ctx.lineWidth = Math.max(1.2, cell * 0.038);
+      ctx.stroke();
+    }
+
+    // 3. Draw Head & Cartoon Googly Eyes
+    const head = beads[beads.length - 1];
+    const headR = baseRadius * 1.12;
+
+    // Perpendicular vector for placing left & right eyes
+    const perpX = -dy;
+    const perpY = dx;
+    const eyeSpacing = headR * 0.52;
+    const eyeR = Math.max(2.8, headR * 0.42);
+
+    const forwardShift = headR * 0.28;
+    const eyeCenterX = head.x + dx * forwardShift;
+    const eyeCenterY = head.y + dy * forwardShift;
+
+    const eye1 = {
+      x: eyeCenterX + perpX * eyeSpacing,
+      y: eyeCenterY + perpY * eyeSpacing
+    };
+    const eye2 = {
+      x: eyeCenterX - perpX * eyeSpacing,
+      y: eyeCenterY - perpY * eyeSpacing
+    };
+
+    const drawSingleEye = (eyePos) => {
+      // Eyeball white
+      ctx.beginPath();
+      ctx.arc(eyePos.x, eyePos.y, eyeR, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = Math.max(1.2, eyeR * 0.24);
+      ctx.stroke();
+
+      if (isDizzy) {
+        // Dizzy cartoon cross eye
+        const crossSize = eyeR * 0.55;
+        ctx.beginPath();
+        ctx.moveTo(eyePos.x - crossSize, eyePos.y - crossSize);
+        ctx.lineTo(eyePos.x + crossSize, eyePos.y + crossSize);
+        ctx.moveTo(eyePos.x + crossSize, eyePos.y - crossSize);
+        ctx.lineTo(eyePos.x - crossSize, eyePos.y + crossSize);
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = Math.max(1.5, eyeR * 0.3);
+        ctx.stroke();
+      } else {
+        // Dark pupil looking in travel direction
+        const pupilR = eyeR * 0.52;
+        const pupilOffset = eyeR * 0.32;
+        const px = eyePos.x + dx * pupilOffset;
+        const py = eyePos.y + dy * pupilOffset;
+
+        ctx.beginPath();
+        ctx.arc(px, py, pupilR, 0, Math.PI * 2);
+        ctx.fillStyle = pal.pupil || '#0f172a';
+        ctx.fill();
+
+        // White catchlight sparkle dot
+        ctx.beginPath();
+        ctx.arc(px - pupilR * 0.35, py - pupilR * 0.35, pupilR * 0.38, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+      }
+    };
+
+    drawSingleEye(eye1);
+    drawSingleEye(eye2);
+
+    ctx.restore();
+  }
+
+  /**
    * Realistic slithering calculation:
    * Moves the head forward while pulling the body/tail along the sharp turns.
    */
@@ -400,6 +583,21 @@ export class Renderer {
       const headScreen = this.gridToScreen(gridHead.x, gridHead.y);
       const tipX = headScreen.x + bumpOffsetX;
       const tipY = headScreen.y + bumpOffsetY;
+
+      // When escaping or colliding: render the animated segmented snake with cartoon eyes!
+      if (arrow.isEscaping || arrow.isColliding) {
+        this.drawSnake(
+          ctx,
+          arrow,
+          screenPoints,
+          headScreen,
+          dx,
+          dy,
+          opacity,
+          arrow.isColliding && arrow.hasImpacted
+        );
+        continue;
+      }
 
       // Color scheme:
       // Default: Deep crisp black on light themes, brilliant diamond white on dark hacker mode
