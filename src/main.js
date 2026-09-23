@@ -43,10 +43,10 @@ class GameApp {
 
     // Setup callbacks
     this.board.onVictoryCallback = (res) => this.handleVictory(res);
-    this.board.onStarChangeCallback = (stars, lostStar) => this.hud.updateStars(stars, lostStar);
-    this.board.onAvailablePathsCallback = (count) => this.hud.updateAvailablePaths(count);
-    this.board.onRestartNotificationCallback = (msg) => this.hud.showRestartToast(msg);
-    this.board.onTimerUpdateCallback = (timeRemaining, isTimed) => this.hud.updateTimer(timeRemaining, isTimed);
+    this.board.onStarChangeCallback = (stars, lostStar) => { if (this.hud) this.hud.updateStars(stars, lostStar); };
+    this.board.onAvailablePathsCallback = (count) => { if (this.hud) this.hud.updateAvailablePaths(count); };
+    this.board.onRestartNotificationCallback = (msg) => { if (this.hud) this.hud.showRestartToast(msg); };
+    this.board.onTimerUpdateCallback = (timeRemaining, isTimed) => { if (this.hud) this.hud.updateTimer(timeRemaining, isTimed); };
     this.board.onCollisionImpactCallback = (gx, gy, dir) => {
       const screen = this.renderer.gridToScreen(gx, gy);
       let angle = 0;

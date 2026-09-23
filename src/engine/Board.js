@@ -279,6 +279,7 @@ export class Board {
           arrow.escapeProgress = 1.0;
           arrow.isEscaping = false;
           arrow.isEscaped = true;
+          this.notifyRemaining();
           this.checkVictory();
         } else {
           // Trail particles
