@@ -112,7 +112,9 @@ class GameApp {
             ...(data.unlocked || {})
           },
           stars: data.stars || {},
-          bestMoves: data.bestMoves || {}
+          bestMoves: data.bestMoves || {},
+          lastCategory: data.lastCategory || 'beginner',
+          lastLevel: data.lastLevel || 1
         };
       }
     } catch (e) {
@@ -128,7 +130,9 @@ class GameApp {
         hacker: 1
       },
       stars: {},
-      bestMoves: {}
+      bestMoves: {},
+      lastCategory: 'beginner',
+      lastLevel: 1
     };
   }
 
@@ -141,10 +145,12 @@ class GameApp {
   }
 
   initUI() {
-    // 1. Intro Screen
+    // 1. Intro Screen:
+    // "PLAY GAME" button -> directly launches the active playing level!
+    // "CHOOSE DIFFICULTY" button -> opens the difficulty/complexity select screen
     this.intro = new IntroScreen(
       this.introContainer,
-      () => this.showComplexitySelect(),
+      () => this.playDirectLevel(),
       () => this.showComplexitySelect(),
       () => this.settingsModal.show()
     );
@@ -231,6 +237,14 @@ class GameApp {
     this.levelSelect.show(this.progress, cat);
   }
 
+  playDirectLevel() {
+    // Directly starts the active level without opening difficulty select
+    const targetCat = this.progress.lastCategory || this.currentCategory || 'beginner';
+    const unlockedLevel = (this.progress.unlocked && this.progress.unlocked[targetCat]) ? this.progress.unlocked[targetCat] : 1;
+    const targetLvl = this.progress.lastLevel || unlockedLevel || 1;
+    this.startLevel(targetCat, targetLvl);
+  }
+
   startLevel(categoryOrNum = 'beginner', levelNum = 1) {
     let cat = 'beginner';
     let num = 1;
@@ -273,6 +287,11 @@ class GameApp {
 
     this.currentCategory = cat;
     this.currentLevelNum = Math.max(1, Math.min(100, num));
+
+    // Save as last played category and level
+    this.progress.lastCategory = this.currentCategory;
+    this.progress.lastLevel = this.currentLevelNum;
+    this.saveProgress();
 
     this.intro.hide();
     this.complexitySelect.hide();
