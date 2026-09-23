@@ -37,8 +37,16 @@ export class Renderer {
     this.boardH = 0;
     this.onZoomChange = null;
 
+    // Smooth Game Start Entrance Animation (scale & fade on level start)
+    this.entranceAnimTime = 0;
+    this.entranceDuration = 0.55;
+
     this.resize();
     window.addEventListener('resize', () => this.resize());
+  }
+
+  startEntranceAnimation() {
+    this.entranceAnimTime = 0;
   }
 
   resize() {
@@ -183,6 +191,25 @@ export class Renderer {
 
     this.updateTransforms(board.width, board.height);
 
+    // Game Start Entrance Animation (smooth elastic/ease-out pop & fade-in)
+    this.entranceAnimTime += dt;
+    const progress = Math.min(1.0, this.entranceAnimTime / this.entranceDuration);
+    // Smooth ease-out cubic curve
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const entranceScale = 0.86 + 0.14 * ease;
+    const entranceAlpha = Math.min(1.0, progress * 1.3);
+
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+
+    ctx.save();
+    if (progress < 1.0) {
+      ctx.globalAlpha = entranceAlpha;
+      ctx.translate(centerX, centerY);
+      ctx.scale(entranceScale, entranceScale);
+      ctx.translate(-centerX, -centerY);
+    }
+
     // 2. Tactile Shape Card Board Backdrop directly behind arrows
     this.drawBoardBackplate(ctx, board, theme);
 
@@ -196,6 +223,8 @@ export class Renderer {
     if (this.particles) {
       this.particles.draw(ctx);
     }
+
+    ctx.restore();
   }
 
   /**

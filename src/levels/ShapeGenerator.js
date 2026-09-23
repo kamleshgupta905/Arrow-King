@@ -27,12 +27,12 @@ export const SNAKE_PALETTES = [
 ];
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 2 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.10, maxTurns: 3 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.18, maxTurns: 3 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.25, maxTurns: 4 },
-  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.32, maxTurns: 4 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.10, maxTurns: 3, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 2, minArrows: 14, maxArrows: 30 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.15, maxTurns: 3, minArrows: 24, maxArrows: 50 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.65, maxTurns: 3, minArrows: 800, maxArrows: 850 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.25, maxTurns: 4, minArrows: 36, maxArrows: 65 },
+  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.35, maxTurns: 4, minArrows: 45, maxArrows: 75 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.65, maxTurns: 3, minArrows: 800, maxArrows: 850, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -1509,8 +1509,9 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const baseShape = getCategoryShape(category, num);
 
   // Progressive scaling across levels 1..100
-  const progScale = 1.0 + ((num - 1) / 99) * 0.15;
-  const totalScale = catDef.scale || 1.0;
+  const progScale = 1.0 + ((num - 1) / 99) * 0.20;
+  const isGiant = (catDef.minArrows >= 800);
+  const totalScale = isGiant ? (3.8 * progScale) : ((catDef.scale || 1.0) * progScale);
 
   const width = Math.round(baseShape.width * totalScale);
   const height = Math.round(baseShape.height * totalScale);
@@ -1529,10 +1530,17 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
   }
 
-  // Exactly as many arrows as required for this shape:
-  // Fills ~65-72% of the shape neatly without bulk or lag
+  // Exactly as many arrows as required for this shape level-by-level:
   const shapeArea = inShape.length;
-  const targetArrows = Math.max(12, Math.min(48, Math.round((shapeArea * 0.68) / 3.4)));
+  let targetArrows;
+  if (catDef.minArrows && catDef.maxArrows) {
+    const minA = catDef.minArrows;
+    const maxA = catDef.maxArrows;
+    const scaledTarget = Math.round(minA + ((num - 1) / 99) * (maxA - minA));
+    targetArrows = Math.min(scaledTarget, Math.max(12, Math.round(shapeArea * 0.60)));
+  } else {
+    targetArrows = Math.max(12, Math.min(48, Math.round((shapeArea * 0.68) / 3.4)));
+  }
 
   const gridPts = new Uint8Array(width * height);
   const rayGrid = new Uint8Array(width * height);
@@ -1547,7 +1555,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     ? (rng() < 0.65 ? 1 : 2)
     : (num % 2 === 0 ? 3 : 2);
 
-  const maxAttempts = 18000;
+  const maxAttempts = isGiant ? 35000 : 18000;
   let attempts = 0;
 
   while (attempts < maxAttempts && availablePoints.length > 3 && orderedArrows.length < targetArrows) {
@@ -1730,8 +1738,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   // Calculate actual initial free count
   const initialFreeCount = orderedArrows.filter(a => canArrowEscape(a, orderedArrows)).length;
 
-  // Time limit for Hacker mode: ~1.5s per arrow, min 30s, max 95s
-  const timeLimit = catDef.isTimed ? Math.max(30, Math.min(95, Math.round(orderedArrows.length * 1.5))) : 0;
+  // Time limit for Hacker mode: dynamic based on arrow count
+  const timeLimit = catDef.isTimed ? Math.max(45, Math.min(360, Math.round(orderedArrows.length * 0.45))) : 0;
 
   return {
     category: catDef.id,

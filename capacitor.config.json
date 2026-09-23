@@ -2,5 +2,14 @@
   "appId": "com.arrowking.game",
   "appName": "Arrow King",
   "webDir": "dist",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#080b16",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
+  }
 }

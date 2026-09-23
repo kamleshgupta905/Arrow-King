@@ -243,15 +243,30 @@ class GameApp {
       num = levelNum;
     }
 
-    // Star requirement check: Expert (25★), Master (45★)
+    // Star requirement check: Intermediate (15★), Advanced (20★), Expert (30★), Master (45★), Hacker (60★)
     const totalStars = Object.values(this.progress.stars || {}).reduce((sum, s) => sum + (typeof s === 'number' ? s : 0), 0);
-    if (cat === 'expert' && totalStars < 25) {
-      console.warn(`Expert level locked: requires 25 stars (currently ${totalStars})`);
+    if (cat === 'intermediate' && totalStars < 15) {
+      console.warn(`Intermediate level locked: requires 15 stars (currently ${totalStars})`);
+      this.showComplexitySelect();
+      return;
+    }
+    if (cat === 'advanced' && totalStars < 20) {
+      console.warn(`Advanced level locked: requires 20 stars (currently ${totalStars})`);
+      this.showComplexitySelect();
+      return;
+    }
+    if (cat === 'expert' && totalStars < 30) {
+      console.warn(`Expert level locked: requires 30 stars (currently ${totalStars})`);
       this.showComplexitySelect();
       return;
     }
     if (cat === 'master' && totalStars < 45) {
       console.warn(`Master level locked: requires 45 stars (currently ${totalStars})`);
+      this.showComplexitySelect();
+      return;
+    }
+    if (cat === 'hacker' && totalStars < 60) {
+      console.warn(`Hacker level locked: requires 60 stars (currently ${totalStars})`);
       this.showComplexitySelect();
       return;
     }
@@ -272,6 +287,7 @@ class GameApp {
 
     this.renderer.resize();
     this.renderer.resetZoom();
+    this.renderer.startEntranceAnimation();
     const levelData = getLevel(this.currentCategory, this.currentLevelNum);
     this.board.loadLevel(levelData);
 

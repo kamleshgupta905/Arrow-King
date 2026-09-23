@@ -43,11 +43,20 @@ export class ComplexitySelect {
   }
 
   getCategoryLockInfo(catId, totalStars) {
-    if (catId === 'expert' && totalStars < 25) {
-      return { isLocked: true, requiredStars: 25, label: '25★' };
+    if (catId === 'intermediate' && totalStars < 15) {
+      return { isLocked: true, requiredStars: 15, label: '15★' };
+    }
+    if (catId === 'advanced' && totalStars < 20) {
+      return { isLocked: true, requiredStars: 20, label: '20★' };
+    }
+    if (catId === 'expert' && totalStars < 30) {
+      return { isLocked: true, requiredStars: 30, label: '30★' };
     }
     if (catId === 'master' && totalStars < 45) {
       return { isLocked: true, requiredStars: 45, label: '45★' };
+    }
+    if (catId === 'hacker' && totalStars < 60) {
+      return { isLocked: true, requiredStars: 60, label: '60★' };
     }
     return { isLocked: false, requiredStars: 0, label: '' };
   }
@@ -69,35 +78,35 @@ export class ComplexitySelect {
       intermediate: {
         icon: '🟡',
         tag: 'BALANCED',
-        tagline: 'Tricky bends & crossings • 20-30 Arrows',
+        tagline: 'Tricky bends & crossings • Unlock with 15★',
         glowColor: '#f59e0b',
         borderGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.45), rgba(217, 119, 6, 0.15))'
       },
       advanced: {
         icon: '🟠',
-        tag: 'CHALLENGING',
-        tagline: 'Dense interlocking labyrinths • 28-40 Arrows',
+        tag: 'MEGA LABYRINTH',
+        tagline: 'Massive dense labyrinths • 800-850 Arrows • Unlock with 20★',
         glowColor: '#f97316',
         borderGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.45), rgba(194, 65, 12, 0.15))'
       },
       expert: {
         icon: '🔴',
         tag: 'HARDCORE',
-        tagline: 'Master topological mazes • 35-48 Arrows',
+        tagline: 'Master topological mazes • Unlock with 30★',
         glowColor: '#ef4444',
         borderGradient: 'linear-gradient(135deg, rgba(239, 68, 68, 0.45), rgba(185, 28, 28, 0.15))'
       },
       master: {
         icon: '🟣',
         tag: 'GRANDMASTER',
-        tagline: 'The ultimate vector conquest • 45-60 Arrows',
+        tagline: 'The ultimate vector conquest • Unlock with 45★',
         glowColor: '#a855f7',
         borderGradient: 'linear-gradient(135deg, rgba(168, 85, 247, 0.55), rgba(126, 34, 206, 0.2))'
       },
       hacker: {
         icon: '⚡',
-        tag: 'SPEEDRUN',
-        tagline: '60s Countdown Blitz • Fast-paced escape!',
+        tag: 'SPEEDRUN BLITZ',
+        tagline: 'Extreme challenge • 800-850 Arrows timed • Unlock with 60★',
         glowColor: '#06b6d4',
         borderGradient: 'linear-gradient(135deg, rgba(6, 182, 212, 0.55), rgba(236, 72, 153, 0.3))'
       }

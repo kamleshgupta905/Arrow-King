@@ -92,11 +92,20 @@ export class LevelSelect {
   }
 
   getCategoryLockInfo(catId, totalStars) {
-    if (catId === 'expert' && totalStars < 25) {
-      return { isLocked: true, requiredStars: 25, label: '25★' };
+    if (catId === 'intermediate' && totalStars < 15) {
+      return { isLocked: true, requiredStars: 15, label: '15★' };
+    }
+    if (catId === 'advanced' && totalStars < 20) {
+      return { isLocked: true, requiredStars: 20, label: '20★' };
+    }
+    if (catId === 'expert' && totalStars < 30) {
+      return { isLocked: true, requiredStars: 30, label: '30★' };
     }
     if (catId === 'master' && totalStars < 45) {
       return { isLocked: true, requiredStars: 45, label: '45★' };
+    }
+    if (catId === 'hacker' && totalStars < 60) {
+      return { isLocked: true, requiredStars: 60, label: '60★' };
     }
     return { isLocked: false, requiredStars: 0, label: '' };
   }
