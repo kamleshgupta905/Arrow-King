@@ -25,8 +25,15 @@ export class HUD {
           </button>
 
           <div class="hud-title-card">
-            <div class="hud-level-label"><span id="hud-category-label">BEGINNER</span> · LV <span id="hud-level-num">1</span></div>
-            <div class="hud-shape-name" id="hud-shape-name">TRIANGLE</div>
+            <div class="hud-level-label">Level <span id="hud-level-num">1</span></div>
+            <div class="hud-shape-name" id="hud-shape-name">Triangle</div>
+            <div class="hud-level-label" id="hud-category-label" style="display:none;">BEGINNER</div>
+          </div>
+
+          <div class="hud-stars-box" id="hud-stars-box" title="Lives">
+            <span class="hud-star active" id="hud-star-1"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg></span>
+            <span class="hud-star active" id="hud-star-2"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg></span>
+            <span class="hud-star active" id="hud-star-3"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg></span>
           </div>
 
           <button id="btn-hud-pause" class="hud-icon-btn" title="Settings" aria-label="Settings">
@@ -38,11 +45,6 @@ export class HUD {
         </header>
 
         <div class="hud-meta-float">
-          <div class="hud-stars-box" id="hud-stars-box" title="Remaining stars">
-            <span class="hud-star active" id="hud-star-1">★</span>
-            <span class="hud-star active" id="hud-star-2">★</span>
-            <span class="hud-star active" id="hud-star-3">★</span>
-          </div>
           <div class="hud-paths-badge" id="hud-paths-badge" title="Open escape paths">
             <span class="hud-paths-dot"></span>
             <span id="hud-paths-text">2 PATHS OPEN</span>
@@ -65,13 +67,13 @@ export class HUD {
             <span>UNDO</span>
           </button>
 
-          <button id="btn-hud-hint" class="photo-ctrl-btn hint-ctrl-btn" title="Show Hint">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+          <button id="btn-hud-hint" class="photo-ctrl-btn hint-ctrl-btn" title="Watch an ad for a hint">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M9 18h6"/>
               <path d="M10 22h4"/>
               <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"/>
             </svg>
-            <span>HINT</span>
+            <span class="ad-badge">AD</span>
           </button>
 
           <button id="btn-hud-restart" class="photo-ctrl-btn" title="Restart Level">
@@ -124,7 +126,10 @@ export class HUD {
       }
     }
     const nameEl = this.container.querySelector('#hud-shape-name');
-    if (nameEl) nameEl.textContent = shapeName.toUpperCase();
+    if (nameEl) {
+      const clean = String(shapeName || 'Shape').toLowerCase();
+      nameEl.textContent = clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
 
     const dotEl = this.container.querySelector('.hud-paths-dot');
     if (dotEl && theme && theme.accentColor) {

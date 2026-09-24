@@ -63,7 +63,7 @@ export class LevelSelect {
             </div>
             <div class="ls-progress-badge">
               <span class="star-icon">★</span>
-              <span>${catStars} / ${catMaxStars} Stars</span>
+              <span>${catStars} / ${catMaxStars}</span>
             </div>
           </div>
           <div style="width: 42px;"></div>
@@ -162,7 +162,7 @@ export class LevelSelect {
       return `
         <div class="level-card-flat ${isUnlocked ? 'unlocked' : 'locked'} ${isHacker ? 'hacker-card' : ''}" data-level="${lvl.levelNumber}">
           <div class="card-header-flat">
-            <span class="card-shape-name">${lvl.shapeName}</span>
+            <span class="card-shape-name">${String(lvl.shapeName || 'Shape').toLowerCase().replace(/(^|\s)\w/g, (m) => m.toUpperCase())}</span>
             <span class="card-level-pill">#${lvl.levelNumber}</span>
           </div>
 
@@ -267,7 +267,7 @@ export class LevelSelect {
     const w = canvas.width;
     const h = canvas.height;
 
-    ctx.fillStyle = '#080b18';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, w, h);
 
     const boardW = levelData.width;
@@ -277,8 +277,15 @@ export class LevelSelect {
     const offsetX = (w - boardW * cellSize) / 2;
     const offsetY = (h - boardH * cellSize) / 2;
 
+    const shapePts = levelData.shapePoints || [];
+    ctx.fillStyle = '#E7EEF8';
+    for (const p of shapePts) {
+      const s = cellSize * 0.92;
+      ctx.fillRect(offsetX + p.x * cellSize - s / 2, offsetY + p.y * cellSize - s / 2, s, s);
+    }
+
     // Draw subtle grid dots
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.fillStyle = '#9AA8BC';
     for (let y = 1; y < boardH; y += 2) {
       for (let x = 1; x < boardW; x += 2) {
         ctx.beginPath();

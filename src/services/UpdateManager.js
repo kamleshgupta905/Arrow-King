@@ -16,6 +16,7 @@ export const APP_VERSION = pkg.version || '2.0.0';
 const REPO = 'kamleshgupta905/Arrow-King';
 const RELEASES_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const RELEASES_PAGE = `https://github.com/${REPO}/releases/latest`;
+export const DIRECT_APK_URL = `https://github.com/${REPO}/releases/latest/download/Arrow-King.apk`;
 
 const ApkUpdater = registerPlugin('ApkUpdater');
 
@@ -57,7 +58,10 @@ class UpdateManager {
     this.checking = true;
     try {
       const response = await fetch(RELEASES_URL, {
-        headers: { Accept: 'application/vnd.github+json' },
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'User-Agent': 'ArrowKing-Updater'
+        },
         cache: 'no-store'
       });
 
@@ -74,7 +78,7 @@ class UpdateManager {
         version: tag.replace(/^v/i, ''),
         name: data.name || `Arrow King ${tag}`,
         notes: this.cleanNotes(data.body),
-        url: asset?.browser_download_url || data.html_url || RELEASES_PAGE,
+        url: asset?.browser_download_url || DIRECT_APK_URL,
         page: data.html_url || RELEASES_PAGE
       };
 
@@ -160,7 +164,7 @@ class UpdateManager {
     const go = sheet.querySelector('#royal-update-go');
     go.hidden = false;
     go.disabled = false;
-    go.textContent = isNative() ? 'Update phone' : 'Download APK';
+    go.textContent = 'Download APK';
     sheet.querySelector('#royal-update-progress').hidden = true;
     sheet.classList.add('is-open');
   }
@@ -174,6 +178,17 @@ class UpdateManager {
     sheet.querySelector('#royal-update-go').hidden = true;
     sheet.querySelector('#royal-update-progress').hidden = true;
     sheet.classList.add('is-open');
+  }
+
+  openDirectDownload() {
+    const url = this.latest?.url || DIRECT_APK_URL;
+    if (isNative()) {
+      ApkUpdater.openExternal({ url }).catch(() => {
+        window.open(url, '_blank', 'noopener');
+      });
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
   }
 
   hideSheet() {
@@ -193,8 +208,9 @@ class UpdateManager {
     const info = this.latest;
     if (!info || this.downloading) return;
 
+    const apkUrl = info.url || DIRECT_APK_URL;
     if (!isNative()) {
-      window.open(info.url || info.page || RELEASES_PAGE, '_blank', 'noopener');
+      window.open(apkUrl, '_blank', 'noopener');
       return;
     }
 
@@ -226,20 +242,22 @@ class UpdateManager {
       });
 
       this.setProgress(3);
-      await ApkUpdater.downloadAndInstall({ url: info.url });
+      await ApkUpdater.downloadAndInstall({ url: apkUrl });
       this.setProgress(100);
       handle?.remove?.();
     } catch (err) {
       console.log('[UpdateManager] install failed', err);
       if (go) {
         go.disabled = false;
-        go.textContent = 'Open release page';
+        go.textContent = 'Open download';
       }
       const body = this.sheet?.querySelector('#royal-update-body');
-      if (body) body.textContent = 'The installer could not start. Opening the GitHub release is the sure path.';
-      this.sheet?.querySelector('#royal-update-go')?.addEventListener('click', () => {
-        window.open(info.page || RELEASES_PAGE, '_blank', 'noopener');
-      }, { once: true });
+      if (body) body.textContent = 'In-app install failed. Opening the direct APK link in the browser.';
+      try {
+        await ApkUpdater.openExternal({ url: apkUrl });
+      } catch (_) {
+        window.open(apkUrl, '_blank', 'noopener');
+      }
     } finally {
       this.downloading = false;
     }

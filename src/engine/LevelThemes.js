@@ -444,7 +444,7 @@ export function drawShapeBoardBackdrop(ctx, bounds, theme, zoom = 1.0) {
   ctx.shadowOffsetY = theme.isDark ? 0 : 8;
 
   // Board background fill
-  ctx.fillStyle = theme.shapeCard ? theme.shapeCard.fill : 'rgba(255, 255, 255, 0.86)';
+  ctx.fillStyle = '#FFFFFF';
   drawRoundedRectPath(ctx, x, y, w, h, radius);
   ctx.fill();
 
@@ -458,8 +458,7 @@ export function drawShapeBoardBackdrop(ctx, bounds, theme, zoom = 1.0) {
   drawRoundedRectPath(ctx, x, y, w, h, radius);
   ctx.stroke();
 
-  // On Hacker dark mode: draw glowing cyber corner accents
-  if (theme.isDark && theme.accentColor) {
+  if (false && theme.isDark && theme.accentColor) {
     ctx.strokeStyle = theme.accentColor;
     ctx.lineWidth = 2.2;
     const bracketLen = Math.min(18, w * 0.08);

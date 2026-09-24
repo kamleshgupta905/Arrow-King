@@ -54,7 +54,7 @@ export class IntroScreen {
               <img src="/icon-512.png" alt="" />
             </div>
             <div class="brand-lockup">
-              <span class="brand-kicker">PREMIERE</span>
+              <span class="brand-kicker">PUZZLE</span>
               <div class="brand-title">
                 <span class="brand-arrow">Arrow</span>
                 <span class="brand-king">King</span>
@@ -109,7 +109,7 @@ export class IntroScreen {
               <span class="title-king">King</span>
             </h1>
             <div class="gold-rule"></div>
-            <p class="hero-game-subtitle">Master the sequence.<br>Claim the crown.</p>
+            <p class="hero-game-subtitle">Tap the free arrow.<br>Clear the shape.</p>
           </div>
 
           <div class="jewel-row rise d3">
@@ -123,7 +123,7 @@ export class IntroScreen {
             </div>
             <div class="jewel">
               <b id="prestige-courts">${this.stats.courts || 0}</b>
-              <span>COURTS</span>
+              <span>CLEARED</span>
             </div>
           </div>
 
@@ -132,7 +132,7 @@ export class IntroScreen {
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                 <polygon points="7 4 20 12 7 20 7 4"/>
               </svg>
-              <span>ENTER THE COURT</span>
+              <span>PLAY</span>
             </button>
             <button id="btn-intro-levels" class="btn-hero-secondary" aria-label="Select mode">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">

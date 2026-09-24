@@ -142,8 +142,8 @@ export class Renderer {
     this.boardH = boardH;
 
     // Clear the premiere header + star/path capsule, and the bottom dock.
-    const topInset = 136;
-    const bottomInset = 108;
+    const topInset = 118;
+    const bottomInset = 96;
     const sideInset = 28;
 
     const availableW = Math.max(80, this.width - sideInset * 2);
@@ -185,8 +185,8 @@ export class Renderer {
     const lvlNum = board.level.levelNumber || 1;
     const theme = getLevelTheme(cat, lvlNum);
 
-    // 1. Dynamic Colorful Background with 1 of 10 Geometric Art Patterns per level
-    drawLevelBackground(ctx, this.width, this.height, theme, this.animTime);
+    ctx.fillStyle = '#F4F6FA';
+    ctx.fillRect(0, 0, this.width, this.height);
 
     this.updateTransforms(board.width, board.height);
 
@@ -209,10 +209,7 @@ export class Renderer {
       ctx.translate(-centerX, -centerY);
     }
 
-    // 2. Tactile Shape Card Board Backdrop directly behind arrows
-    this.drawBoardBackplate(ctx, board, theme);
-
-    // 3. Render clean dot grid aligned with the shape using theme's dot styling
+    this.drawShapeFill(ctx, board);
     this.drawDotGrid(ctx, board, theme);
 
     // 4. Render all active and animating arrows
@@ -257,14 +254,45 @@ export class Renderer {
   /**
    * Draws subtle pinpoint dots inside the shape silhouette for grid alignment (Photos 1-5).
    */
+  drawShapeFill(ctx, board) {
+    const pts = board.shapePoints || [];
+    if (!pts.length) return;
+    const occupied = new Set(pts.map((p) => `${p.x},${p.y}`));
+    const size = this.cellSize * 1.06;
+    ctx.save();
+    ctx.fillStyle = '#E7EEF6';
+    ctx.strokeStyle = '#1A2744';
+    ctx.lineWidth = Math.max(1.5, this.cellSize * 0.06);
+    ctx.beginPath();
+    for (const p of pts) {
+      const pos = this.gridToScreen(p.x, p.y);
+      const x = pos.x - size / 2;
+      const y = pos.y - size / 2;
+      ctx.fillRect(x, y, size, size);
+      const edge = (dx, dy) => !occupied.has(`${p.x + dx},${p.y + dy}`);
+      if (edge(0, -1)) { ctx.moveTo(x, y); ctx.lineTo(x + size, y); }
+      if (edge(0, 1)) { ctx.moveTo(x, y + size); ctx.lineTo(x + size, y + size); }
+      if (edge(-1, 0)) { ctx.moveTo(x, y); ctx.lineTo(x, y + size); }
+      if (edge(1, 0)) { ctx.moveTo(x + size, y); ctx.lineTo(x + size, y + size); }
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
   drawDotGrid(ctx, board, theme) {
     ctx.save();
-    const dotRadius = Math.max(1.2, this.cellSize * 0.055);
-
-    // Theme-aligned pinpoint dots matching reference images
-    ctx.fillStyle = (theme && theme.shapeCard && theme.shapeCard.dotColor)
-      ? theme.shapeCard.dotColor
-      : 'rgba(15, 23, 42, 0.12)';
+    const dotRadius = Math.max(1.3, this.cellSize * 0.07);
+    ctx.fillStyle = '#9AA8BC';
 
     for (const p of (board.shapePoints || [])) {
       const pos = this.gridToScreen(p.x, p.y);
@@ -536,9 +564,9 @@ export class Renderer {
     ctx.save();
 
     // High visibility line width that scales with cell size
-    const lineWidth = Math.max(2.8, Math.min(6.2, this.cellSize * 0.19));
-    const headLength = Math.max(9, Math.min(22, this.cellSize * 0.44));
-    const headWidth = Math.max(8, Math.min(18, this.cellSize * 0.40));
+    const lineWidth = Math.max(3.6, this.cellSize * 0.28);
+    const headLength = Math.max(9, this.cellSize * 0.52);
+    const headWidth = Math.max(8, this.cellSize * 0.46);
 
     for (const arrow of board.arrows) {
       if (arrow.isEscaped) continue;
@@ -612,44 +640,16 @@ export class Renderer {
       const tipX = headScreen.x + bumpOffsetX;
       const tipY = headScreen.y + bumpOffsetY;
 
-      // When escaping or colliding: render the animated segmented snake with cartoon eyes!
-      if (arrow.isEscaping || arrow.isColliding) {
-        this.drawSnake(
-          ctx,
-          arrow,
-          screenPoints,
-          headScreen,
-          dx,
-          dy,
-          opacity,
-          arrow.isColliding && arrow.hasImpacted
-        );
-        continue;
-      }
-
-      // Color scheme:
-      // Default: Deep crisp black on light themes, brilliant diamond white on dark hacker mode
-      // Blocked / Impacted: Vibrant Crimson Red
-      // Hint: Radiant Emerald Green / Cyan
-      let strokeColor = (theme && theme.arrowColor) ? theme.arrowColor : '#0f172a';
-
-      if (arrow.isColliding || arrow.isHighlighted || arrow.id === board.hoveredArrowId) {
-        strokeColor = (theme && theme.impactColor) ? theme.impactColor : '#ef4444';
+      let strokeColor = '#1A2744';
+      if (arrow.isColliding || arrow.isHighlighted) {
+        strokeColor = '#DC2626';
       } else if (arrow.id === board.hintArrowId) {
-        const pulse = 0.5 + 0.5 * Math.sin(this.animTime * 8);
-        strokeColor = pulse > 0.5
-          ? ((theme && theme.hintColor) ? theme.hintColor : '#10b981')
-          : (theme && theme.accentColor ? theme.accentColor : '#8b5cf6');
+        strokeColor = '#2F6BFF';
       }
 
       ctx.save();
       ctx.globalAlpha = opacity;
-
-      // Glowing neon cyber glow on dark hacker mode
-      if (theme && theme.isDark) {
-        ctx.shadowColor = (arrow.isColliding || arrow.isHighlighted) ? '#ff0055' : theme.accentColor;
-        ctx.shadowBlur = 7;
-      }
+      ctx.shadowBlur = 0;
 
       ctx.strokeStyle = strokeColor;
       ctx.fillStyle = strokeColor;
@@ -708,9 +708,8 @@ export class Renderer {
     ctx.rotate(angle);
 
     ctx.beginPath();
-    ctx.moveTo(0, 0); // Razor-sharp tip at (0, 0)
+    ctx.moveTo(0, 0);
     ctx.lineTo(-headLength, -headWidth / 2);
-    ctx.lineTo(-headLength * 0.75, 0); // Inward notch
     ctx.lineTo(-headLength, headWidth / 2);
     ctx.closePath();
     ctx.fill();

@@ -48,6 +48,19 @@ public class ApkUpdaterPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void openExternal(PluginCall call) {
+        final String url = call.getString("url");
+        if (url == null || url.isEmpty()) {
+            call.reject("Missing release URL");
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
+        call.resolve();
+    }
+
+    @PluginMethod
     public void downloadAndInstall(PluginCall call) {
         final String url = call.getString("url");
         if (url == null || url.isEmpty()) {
@@ -146,8 +159,9 @@ public class ApkUpdaterPlugin extends Plugin {
         conn.setInstanceFollowRedirects(false);
         conn.setConnectTimeout(20000);
         conn.setReadTimeout(120000);
-        conn.setRequestProperty("User-Agent", "ArrowKing-Updater/2.0");
+        conn.setRequestProperty("User-Agent", "ArrowKing-Updater/2.1");
         conn.setRequestProperty("Accept", "application/octet-stream,application/vnd.android.package-archive,*/*");
+        conn.setRequestProperty("Accept-Encoding", "identity");
         conn.connect();
         return conn;
     }

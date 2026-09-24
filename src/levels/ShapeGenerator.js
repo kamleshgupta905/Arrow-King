@@ -109,11 +109,8 @@ export const SHAPES_LIST = [
         const cy = h * 0.35;
         if (Math.hypot((x - cx) / rx, (y - cy) / ry) <= 1) return true;
       }
-      if (y > h * 0.55 && y <= h - 2) {
-        const rx = w * 0.26;
-        const ry = h * 0.24;
-        const cy = h * 0.74;
-        if (Math.hypot((x - cx) / rx, (y - cy) / ry) <= 1) return true;
+      if (y > h * 0.52 && y <= h - 2) {
+        return Math.abs(x - cx) <= Math.max(1.2, w * 0.1);
       }
       return false;
     }
@@ -226,11 +223,11 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      if (Math.abs(nx - 0.5) <= 0.08 && ny >= 0.15 && ny <= 0.85) return true;
-      if (Math.hypot((nx - 0.28) / 0.25, (ny - 0.35) / 0.25) <= 1) return true;
-      if (Math.hypot((nx - 0.72) / 0.25, (ny - 0.35) / 0.25) <= 1) return true;
-      if (Math.hypot((nx - 0.32) / 0.2, (ny - 0.68) / 0.2) <= 1) return true;
-      if (Math.hypot((nx - 0.68) / 0.2, (ny - 0.68) / 0.2) <= 1) return true;
+      if (Math.abs(nx - 0.5) <= 0.04 && ny >= 0.12 && ny <= 0.88) return true;
+      if (Math.hypot((nx - 0.22) / 0.16, (ny - 0.32) / 0.18) <= 1) return true;
+      if (Math.hypot((nx - 0.78) / 0.16, (ny - 0.32) / 0.18) <= 1) return true;
+      if (Math.hypot((nx - 0.26) / 0.14, (ny - 0.7) / 0.16) <= 1) return true;
+      if (Math.hypot((nx - 0.74) / 0.14, (ny - 0.7) / 0.16) <= 1) return true;
       return false;
     }
   },
@@ -243,10 +240,12 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      if (Math.hypot((nx - 0.5) / 0.35, (ny - 0.45) / 0.3) <= 1) return true;
-      if (nx >= 0.22 && nx <= 0.35 && ny >= 0.65 && ny <= 0.95) return true;
-      if (nx >= 0.55 && nx <= 0.68 && ny >= 0.65 && ny <= 0.95) return true;
-      if (nx >= 0.7 && nx <= 0.95 && ny >= 0.25 && ny <= 0.8) return true;
+      if (Math.hypot((nx - 0.42) / 0.24, (ny - 0.42) / 0.28) <= 1) return true;
+      if (Math.hypot((nx - 0.22) / 0.12, (ny - 0.38) / 0.16) <= 1) return true;
+      if (nx >= 0.28 && nx <= 0.38 && ny >= 0.62 && ny <= 0.92) return true;
+      if (nx >= 0.5 && nx <= 0.6 && ny >= 0.62 && ny <= 0.92) return true;
+      if (nx >= 0.62 && nx <= 0.72 && ny >= 0.34 && ny <= 0.5) return true;
+      if (nx >= 0.7 && nx <= 0.78 && ny >= 0.46 && ny <= 0.9) return true;
       return false;
     }
   },
@@ -276,8 +275,10 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      if (nx >= 0.3 && nx <= 0.7 && ny >= 0.18 && ny <= 0.5) return true;
-      if (nx >= 0.1 && nx <= 0.9 && ny >= 0.45 && ny <= 0.8) return true;
+      if (nx >= 0.28 && nx <= 0.72 && ny >= 0.16 && ny <= 0.48) return true;
+      if (nx >= 0.08 && nx <= 0.92 && ny >= 0.42 && ny <= 0.72) return true;
+      const wheel = (cx) => Math.hypot((nx - cx) / 0.07, (ny - 0.78) / 0.1) <= 1;
+      if (wheel(0.28) || wheel(0.72)) return true;
       return false;
     }
   },
@@ -364,8 +365,12 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      if (ny >= 0.1 && ny <= 0.75 && Math.abs(nx - 0.5) <= 0.18) return true;
-      if (ny >= 0.65 && ny <= 0.9 && Math.abs(nx - 0.5) <= 0.38) return true;
+      if (ny >= 0.06 && ny <= 0.28) {
+        const prog = (ny - 0.06) / 0.22;
+        return Math.abs(nx - 0.5) <= 0.04 + prog * 0.14;
+      }
+      if (ny > 0.28 && ny <= 0.72 && Math.abs(nx - 0.5) <= 0.16) return true;
+      if (ny >= 0.58 && ny <= 0.86 && Math.abs(nx - 0.5) >= 0.16 && Math.abs(nx - 0.5) <= 0.16 + (ny - 0.58) * 0.85) return true;
       return false;
     }
   },
@@ -378,8 +383,12 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      if (Math.hypot((nx - 0.5) / 0.38, (ny - 0.4) / 0.3) <= 1) return true;
-      if (Math.abs(nx - 0.5) <= 0.24 && ny >= 0.6 && ny <= 0.88) return true;
+      const head = Math.hypot((nx - 0.5) / 0.34, (ny - 0.36) / 0.26) <= 1;
+      const jaw = Math.abs(nx - 0.5) <= 0.2 && ny >= 0.56 && ny <= 0.86;
+      const eyeL = Math.hypot((nx - 0.36) / 0.07, (ny - 0.34) / 0.07) <= 1;
+      const eyeR = Math.hypot((nx - 0.64) / 0.07, (ny - 0.34) / 0.07) <= 1;
+      const nose = Math.abs(nx - 0.5) <= 0.035 && ny >= 0.42 && ny <= 0.52;
+      if ((head || jaw) && !eyeL && !eyeR && !nose) return true;
       return false;
     }
   },
@@ -439,9 +448,9 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      if (Math.hypot((nx - 0.5) / 0.32, (ny - 0.5) / 0.3) <= 1) return true;
-      if (nx >= 0.8 && nx <= 0.95 && Math.abs(ny - 0.5) <= 0.15) return true;
-      if (Math.abs(nx - 0.5) <= 0.42 && (Math.abs(ny - 0.2) <= 0.1 || Math.abs(ny - 0.8) <= 0.1)) return true;
+      if (Math.hypot((nx - 0.46) / 0.24, (ny - 0.5) / 0.28) <= 1) return true;
+      if (nx >= 0.68 && nx <= 0.92 && ny >= 0.38 && ny <= 0.58) return true;
+      if ((Math.abs(nx - 0.28) <= 0.06 || Math.abs(nx - 0.58) <= 0.06) && (ny <= 0.22 || ny >= 0.78)) return true;
       return false;
     }
   },
@@ -527,7 +536,11 @@ export const SHAPES_LIST = [
     mask: (x, y, w, h) => {
       const nx = x / w;
       const ny = y / h;
-      return Math.hypot(nx - 0.5, ny - 0.5) <= 0.4;
+      if (Math.hypot(nx - 0.5, ny - 0.5) <= 0.2) return true;
+      const ang = Math.atan2(ny - 0.5, nx - 0.5);
+      const spoke = Math.abs(((ang + Math.PI) % (Math.PI / 4)) - Math.PI / 8);
+      const dist = Math.hypot(nx - 0.5, ny - 0.5);
+      return spoke < 0.16 && dist <= 0.46;
     }
   },
   // 33. Flower
@@ -902,7 +915,13 @@ export const EXPERT_SHAPES = [
     name: 'MEANDER MATRIX',
     width: 22,
     height: 20,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+    mask: (x, y, w, h) => {
+      if (x < 2 || x > w - 3 || y < 2 || y > h - 3) return false;
+      const band = Math.floor((y - 2) / 3);
+      const dir = band % 2 === 0;
+      if ((y - 2) % 3 === 2) return x > w * 0.35 && x < w * 0.65;
+      return dir ? x < w * 0.72 : x > w * 0.28;
+    }
   },
   {
     id: 104,
@@ -910,8 +929,12 @@ export const EXPERT_SHAPES = [
     width: 20,
     height: 20,
     mask: (x, y, w, h) => {
-      if (x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2) return true;
-      return false;
+      const rings = [1, 4, 7];
+      return rings.some((inset) => {
+        const on = x === inset || x === w - 1 - inset || y === inset || y === h - 1 - inset;
+        const inside = x >= inset && x <= w - 1 - inset && y >= inset && y <= h - 1 - inset;
+        return on && inside;
+      });
     }
   },
   {
@@ -922,8 +945,8 @@ export const EXPERT_SHAPES = [
     mask: (x, y, w, h) => {
       const midX = w / 2;
       const midY = h / 2;
-      const armW = w * 0.42;
-      const armH = h * 0.42;
+      const armW = w * 0.18;
+      const armH = h * 0.18;
       return Math.abs(x - midX) <= armW || Math.abs(y - midY) <= armH;
     }
   },
@@ -957,9 +980,11 @@ export const EXPERT_SHAPES = [
     width: 22,
     height: 22,
     mask: (x, y, w, h) => {
-      const r = Math.min(w, h) / 2 - 1.5;
-      const dist = Math.hypot(x - w / 2, y - h / 2);
-      return dist <= r;
+      const cx = w / 2;
+      const cy = h / 2 + 1;
+      const inKeep = Math.hypot(x - cx, y - cy) <= Math.min(w, h) / 2 - 3;
+      const merlon = y <= 6 && x >= 4 && x <= w - 5 && (Math.floor((x - 4) / 3) % 2 === 0);
+      return inKeep || merlon;
     }
   },
   {
@@ -967,14 +992,22 @@ export const EXPERT_SHAPES = [
     name: 'TWISTED CORRIDORS',
     width: 22,
     height: 22,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+    mask: (x, y, w, h) => {
+      const nx = x / w;
+      const ny = y / h;
+      const wave = 0.5 + Math.sin(ny * Math.PI * 3) * 0.22;
+      return Math.abs(nx - wave) <= 0.16 && ny > 0.06 && ny < 0.94;
+    }
   },
   {
     id: 110,
     name: 'TANGLED MATRIX',
     width: 22,
     height: 22,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+    mask: (x, y, w, h) => {
+      const onGrid = (x % 4 === 0) || (y % 4 === 0);
+      return x >= 2 && x <= w - 3 && y >= 2 && y <= h - 3 && onGrid;
+    }
   }
 ];
 
@@ -1268,8 +1301,11 @@ export const HACKER_SHAPES = [
     width: 18,
     height: 18,
     mask: (x, y, w, h) => {
-      if ((x < 2 || x > w - 3) && (y < 2 || y > h - 3)) return false;
-      return x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2;
+      const body = x >= 4 && x <= w - 5 && y >= 4 && y <= h - 5;
+      const pin = (x === 1 || x === w - 2 || y === 1 || y === h - 2) && (x % 3 === 1 || y % 3 === 1);
+      const lead = (x === 2 || x === 3 || x === w - 3 || x === w - 4 || y === 2 || y === 3 || y === h - 3 || y === h - 4)
+        && (x % 3 === 1 || y % 3 === 1);
+      return body || pin || lead;
     }
   },
   {
@@ -1277,21 +1313,32 @@ export const HACKER_SHAPES = [
     name: 'CYBER GRID',
     width: 18,
     height: 18,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2 && (x % 3 === 1 || y % 3 === 1)
   },
   {
     id: 303,
     name: 'BINARY CUBE',
     width: 18,
     height: 18,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+    mask: (x, y, w, h) => {
+      const nx = x / w;
+      const ny = y / h;
+      const top = ny >= 0.18 && ny <= 0.48 && Math.abs(nx - 0.5) <= 0.16 + (0.48 - ny) * 0.35;
+      const left = nx >= 0.18 && nx <= 0.5 && ny >= 0.36 && ny <= 0.82 && (nx - 0.18) >= (ny - 0.82) * -0.4;
+      const right = nx >= 0.5 && nx <= 0.82 && ny >= 0.36 && ny <= 0.82;
+      return top || left || right;
+    }
   },
   {
     id: 304,
     name: 'FIREWALL',
     width: 20,
     height: 18,
-    mask: (x, y, w, h) => x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2
+    mask: (x, y, w, h) => {
+      if (y < 2 || y > h - 3 || x < 1 || x > w - 2) return false;
+      if (y < 6) return Math.floor(x / 2) % 2 === 0;
+      return Math.floor(y / 2) % 2 === 0;
+    }
   }
 ];
 

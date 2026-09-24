@@ -198,6 +198,84 @@ export class AdManager {
   /**
    * Show Collapsible Bottom Banner (Only on Menus/Level Select)
    */
+  /**
+   * Hint is locked behind an ad. Native builds play a rewarded video.
+   * Web builds show a visible house ad so the tap is never silent.
+   */
+  async showHintAd(onReward) {
+    if (this.isNative && this.isInitialized) {
+      try {
+        const shown = await this.showRewardedAd(() => {
+          if (onReward) onReward();
+        }, () => {});
+        if (shown) return true;
+      } catch (_) {}
+      try {
+        await AdMob.showInterstitial();
+        this.prepareInterstitial();
+        if (onReward) onReward();
+        return true;
+      } catch (_) {}
+    }
+    this.showHouseAd(onReward);
+    return true;
+  }
+
+  showHouseAd(onReward) {
+    const existing = document.getElementById('hint-ad');
+    if (existing) existing.remove();
+
+    const layer = document.createElement('div');
+    layer.id = 'hint-ad';
+    layer.className = 'hint-ad';
+    layer.innerHTML = `
+      <div class="hint-ad-card" role="dialog" aria-label="Advertisement">
+        <div class="hint-ad-kicker">ADVERTISEMENT</div>
+        <div class="hint-ad-creative" aria-hidden="true">
+          <svg viewBox="0 0 120 72" width="120" height="72">
+            <rect width="120" height="72" rx="10" fill="#1A2744"/>
+            <path d="M18 36h62" stroke="#F7F9FC" stroke-width="6" stroke-linecap="round"/>
+            <path d="M68 22l22 14-22 14" fill="#F7F9FC"/>
+          </svg>
+          <strong>Arrow King</strong>
+          <span>A short placement before your hint.</span>
+        </div>
+        <div class="hint-ad-actions">
+          <button type="button" class="hint-ad-skip" id="hint-ad-skip">Close</button>
+          <button type="button" class="hint-ad-go" id="hint-ad-go" disabled>Ad 4</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(layer);
+
+    const go = layer.querySelector('#hint-ad-go');
+    const close = (grant) => {
+      layer.remove();
+      if (grant && onReward) onReward();
+    };
+    layer.querySelector('#hint-ad-skip')?.addEventListener('click', () => close(false));
+    go?.addEventListener('click', () => {
+      if (go.disabled) return;
+      close(true);
+    });
+
+    let left = 4;
+    const timer = setInterval(() => {
+      if (!document.body.contains(layer)) {
+        clearInterval(timer);
+        return;
+      }
+      left -= 1;
+      if (left <= 0) {
+        clearInterval(timer);
+        go.disabled = false;
+        go.textContent = 'Get hint';
+      } else {
+        go.textContent = `Ad ${left}`;
+      }
+    }, 1000);
+  }
+
   async showBanner() {
     if (!this.isNative || !this.isInitialized) return;
     try {

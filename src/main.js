@@ -99,60 +99,17 @@ class GameApp {
     if (!this.splashContainer) return;
 
     const bar = document.getElementById('splash-progress-bar');
-    const pct = document.getElementById('splash-percent');
-    const canvas = document.getElementById('splash-canvas');
     const started = performance.now();
-    const duration = 2600;
-
-    const dust = Array.from({ length: 28 }, () => ({
-      a: Math.random() * Math.PI * 2,
-      r: 70 + Math.random() * 120,
-      s: 0.004 + Math.random() * 0.01,
-      gold: Math.random() > 0.4
-    }));
-
-    const paintSplash = (now) => {
-      if (!canvas || this.splashDismissed) return;
-      const ctx = canvas.getContext('2d');
-      const w = canvas.clientWidth || window.innerWidth;
-      const h = canvas.clientHeight || window.innerHeight;
-      if (canvas.width !== w) canvas.width = w;
-      if (canvas.height !== h) canvas.height = h;
-      ctx.clearRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h * 0.4;
-      dust.forEach((p) => {
-        p.a += p.s;
-        const x = cx + Math.cos(p.a) * p.r;
-        const y = cy + Math.sin(p.a) * p.r * 0.42;
-        ctx.beginPath();
-        ctx.arc(x, y, p.gold ? 1.6 : 1.1, 0, Math.PI * 2);
-        ctx.fillStyle = p.gold ? 'rgba(240,215,140,0.75)' : 'rgba(192,132,252,0.45)';
-        ctx.fill();
-      });
-      if (now - started < duration + 200) requestAnimationFrame(paintSplash);
-    };
-    requestAnimationFrame(paintSplash);
+    const duration = 1400;
 
     const tick = (now) => {
       if (this.splashDismissed) return;
       const t = Math.min(1, (now - started) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const value = Math.round(eased * 100);
-      if (bar) bar.style.width = `${value}%`;
-      if (pct) pct.textContent = `${value}%`;
+      if (bar) bar.style.width = `${Math.round(t * 100)}%`;
       if (t < 1) requestAnimationFrame(tick);
       else skipSplash();
     };
     requestAnimationFrame(tick);
-
-    const enter = () => {
-      try {
-        soundManager.initContext();
-        soundManager.playRoyalChime();
-        soundManager.startMenuMusic();
-      } catch (_) {}
-    };
 
     const skipSplash = () => {
       if (this.splashDismissed) return;
@@ -160,11 +117,11 @@ class GameApp {
       this.splashContainer.classList.add('fade-out');
       setTimeout(() => {
         if (this.splashContainer) this.splashContainer.style.display = 'none';
-      }, 850);
+      }, 360);
     };
 
     this.splashContainer.addEventListener('pointerdown', () => {
-      enter();
+      try { soundManager.initContext(); soundManager.playTap(); } catch (_) {}
       skipSplash();
     }, { once: true });
 
@@ -254,7 +211,9 @@ class GameApp {
       onBack: () => this.showLevelSelect(this.currentCategory),
       onPause: () => this.settingsModal.show(),
       onUndo: () => this.board.undo(),
-      onHint: () => this.board.getHint(),
+      onHint: () => {
+        adManager.showHintAd(() => this.board.getHint());
+      },
       onRestart: () => this.board.restart()
     });
 

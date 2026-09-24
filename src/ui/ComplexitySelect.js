@@ -74,15 +74,15 @@ export class ComplexitySelect {
         num: '01',
         bars: 1,
         tag: 'CASUAL FLOW',
-        tagline: 'Gentle starter labyrinths & serene vector puzzles',
-        accent: '#10b981',
-        gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        glow: 'rgba(16, 185, 129, 0.45)',
+        tagline: 'Short paths. Learn which arrow can leave.',
+        accent: '#16A34A',
+        gradient: '#16A34A',
+        glow: 'transparent',
         svgIcon: `
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10" stroke-opacity="0.35"/>
-            <path d="M12 6v6l4 2"/>
-            <path d="M12 2a10 10 0 0 1 10 10"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21V10"/>
+            <path d="M12 10c0-3 2-5 5-5-1 3-1 5-1 5"/>
+            <path d="M12 13c0-2.5-2-4.5-5-5 1 3 1 5 1 5"/>
           </svg>
         `
       },
@@ -90,16 +90,14 @@ export class ComplexitySelect {
         num: '02',
         bars: 2,
         tag: 'BALANCED BENDS',
-        tagline: 'Intersecting curves, tricky turns & branching pathways',
-        accent: '#f59e0b',
-        gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-        glow: 'rgba(245, 158, 11, 0.45)',
+        tagline: 'Longer bends. Clear the blocker first.',
+        accent: '#D97706',
+        gradient: '#D97706',
+        glow: 'transparent',
         svgIcon: `
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 18V9a3 3 0 0 1 3-3h13"/>
-            <polyline points="16 2 20 6 16 10"/>
-            <path d="M20 6v9a3 3 0 0 1-3 3H4"/>
-            <polyline points="8 22 4 18 8 14"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 16h6V8h6"/>
+            <polyline points="13 5 16 8 13 11"/>
           </svg>
         `
       },
@@ -107,15 +105,16 @@ export class ComplexitySelect {
         num: '03',
         bars: 3,
         tag: 'MEGA LABYRINTH',
-        tagline: 'High-density vector mazes • 800+ arrow sequences',
-        accent: '#f97316',
-        gradient: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-        glow: 'rgba(249, 115, 22, 0.45)',
+        tagline: 'Dense boards. Every tap has to be in order.',
+        accent: '#EA580C',
+        gradient: '#EA580C',
+        glow: 'transparent',
         svgIcon: `
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-            <polyline points="2 17 12 22 22 17"/>
-            <polyline points="2 12 12 17 22 12"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="6" height="6" rx="1"/>
+            <rect x="14" y="4" width="6" height="6" rx="1"/>
+            <rect x="4" y="14" width="6" height="6" rx="1"/>
+            <rect x="14" y="14" width="6" height="6" rx="1"/>
           </svg>
         `
       },
@@ -123,16 +122,15 @@ export class ComplexitySelect {
         num: '04',
         bars: 4,
         tag: 'HARDCORE LOGIC',
-        tagline: 'Master complex topological mazes & precision escapes',
-        accent: '#ef4444',
-        gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-        glow: 'rgba(239, 68, 68, 0.45)',
+        tagline: 'Few open exits. Plan three moves ahead.',
+        accent: '#DC2626',
+        gradient: '#DC2626',
+        glow: 'transparent',
         svgIcon: `
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 3h12l4 6-10 12L2 9l4-6z"/>
-            <line x1="2" y1="9" x2="22" y2="9"/>
-            <line x1="12" y1="21" x2="7.5" y2="9"/>
-            <line x1="12" y1="21" x2="16.5" y2="9"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8"/>
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
           </svg>
         `
       },
@@ -140,17 +138,14 @@ export class ComplexitySelect {
         num: '05',
         bars: 5,
         tag: 'GRANDMASTER',
-        tagline: 'The ultimate royal vector conquest for true puzzle elites',
-        accent: '#a855f7',
-        gradient: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-        glow: 'rgba(168, 85, 247, 0.55)',
+        tagline: 'The quiet boards. No extra free arrows.',
+        accent: '#4F46E5',
+        gradient: '#4F46E5',
+        glow: 'transparent',
         svgIcon: `
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 19h20v2H2z"/>
-            <path d="m2 17 3-11 5 6 4-9 4 9 5-6 3 11z"/>
-            <circle cx="5" cy="5" r="1.5" fill="currentColor"/>
-            <circle cx="12" cy="3" r="1.5" fill="currentColor"/>
-            <circle cx="19" cy="5" r="1.5" fill="currentColor"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="9" r="5"/>
+            <path d="M8.5 13.5 7 21l5-2 5 2-1.5-7.5"/>
           </svg>
         `
       },
@@ -158,13 +153,15 @@ export class ComplexitySelect {
         num: '06',
         bars: 6,
         tag: 'SPEEDRUN BLITZ',
-        tagline: 'Adrenaline rush • 850 arrows with strict countdown timer',
-        accent: '#06b6d4',
-        gradient: 'linear-gradient(135deg, #06b6d4 0%, #ec4899 100%)',
-        glow: 'rgba(6, 182, 212, 0.55)',
+        tagline: 'Same puzzles, with a countdown.',
+        accent: '#0891B2',
+        gradient: '#0891B2',
+        glow: 'transparent',
         svgIcon: `
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="13" r="7"/>
+            <path d="M12 10v4l2 1"/>
+            <path d="M9 3h6"/>
           </svg>
         `
       }
@@ -174,148 +171,45 @@ export class ComplexitySelect {
     const recommendedId = CATEGORIES.some((c) => c.id === lastCat) ? lastCat : 'beginner';
 
     this.container.innerHTML = `
-      <div class="apple-complexity-screen premiere-modes">
-        <div class="apple-screen-glow"></div>
-
-        <header class="apple-nav-header premiere-nav">
-          <button id="btn-complexity-back" class="apple-back-btn premiere-icon-btn" aria-label="Back to court">
+      <div class="mode-screen">
+        <header class="mode-nav">
+          <button id="btn-complexity-back" class="mode-icon-btn" aria-label="Back">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-
-          <div class="apple-header-title-wrap premiere-nav-copy">
-            <span class="apple-header-eyebrow premiere-kicker">SIX ROYAL HOUSES</span>
-            <h1 class="apple-header-title">Select Mode</h1>
+          <div class="mode-nav-copy">
+            <p class="mode-kicker">Difficulty</p>
+            <h1>Choose a mode</h1>
           </div>
-
-          <div class="apple-stars-pill">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="#f0d78c" stroke="#c6a15a" stroke-width="1.5">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            <span class="apple-stars-text"><strong>${totalStars}</strong> / ${maxStars}</span>
-          </div>
+          <div class="mode-stars" title="Stars collected">${totalStars}</div>
         </header>
 
-        <div class="mode-lede">
-          <span>600 courts</span>
-          <span class="dot">·</span>
-          <span>${totalStars} stars held</span>
-          <span class="dot">·</span>
-          <span>Choose a house</span>
-        </div>
-
-        <main class="apple-cards-viewport">
-          <div class="apple-cards-container">
-            ${CATEGORIES.map((cat, idx) => {
-              const meta = categoryMeta[cat.id] || categoryMeta.beginner;
-              const lockInfo = this.getCategoryLockInfo(cat.id, totalStars);
-              const totalLevels = cat.levelsCount || 30;
-              const currentUnlocked = lockInfo.isLocked ? 0 : Math.min(totalLevels, unlockedMap[cat.id] || 1);
-              const catStars = this.calculateCategoryStars(starsMap, cat.id);
-              const catMaxStars = totalLevels * 3;
-              const progressPercent = lockInfo.isLocked ? 0 : Math.min(100, Math.round(((currentUnlocked - 1) / totalLevels) * 100));
-
-              const recommended = !lockInfo.isLocked && cat.id === recommendedId;
-              return `
-                <div class="apple-glass-card ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'} ${cat.id === 'hacker' ? 'card-hacker-style' : ''} ${recommended ? 'is-recommended' : ''}"
-                     data-cat="${cat.id}"
-                     style="--card-accent: ${meta.accent}; --card-glow: ${meta.glow}; --card-idx: ${idx};">
-
-                  <div class="card-sheen"></div>
-                  <div class="apple-card-specular"></div>
-                  ${recommended ? '<div class="mode-recommend">CONTINUE</div>' : ''}
-
-                  <div class="apple-card-main-content">
-                    <!-- Top Info Row: Icon Jewel + Title Stack + Badge -->
-                    <div class="apple-card-row-top">
-                      <div class="apple-card-lead">
-                        <div class="apple-icon-jewel" style="background: ${meta.gradient}; box-shadow: 0 4px 18px ${meta.glow};">
-                          ${meta.svgIcon}
-                        </div>
-
-                        <div class="apple-title-stack">
-                          <div class="apple-mode-meta-row">
-                            <span class="apple-mode-index">${meta.num}</span>
-                            <span class="apple-mode-dot">•</span>
-                            <span class="apple-mode-subtag">${meta.tag}</span>
-                          </div>
-                          <h2 class="apple-mode-heading">${cat.name}</h2>
-                          <div class="mode-meter" aria-hidden="true">
-                            ${Array.from({ length: 6 }, (_, i) => `<i class="${i < (meta.bars || 1) ? 'on' : ''}"></i>`).join('')}
-                          </div>
-                        </div>
-                      </div>
-
-                      ${lockInfo.isLocked ? `
-                        <div class="apple-lock-badge">
-                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                          </svg>
-                          <span>${lockInfo.requiredStars}★</span>
-                        </div>
-                      ` : `
-                        <div class="apple-count-badge">
-                          <span>${totalLevels} LEVELS</span>
-                        </div>
-                      `}
-                    </div>
-
-                    <!-- Tagline Description -->
-                    <p class="apple-card-tagline">${meta.tagline}</p>
-
-                    <!-- Progress Section with Slim Track -->
-                    <div class="apple-card-progress-box">
-                      <div class="apple-prog-labels">
-                        <span class="apple-prog-status">
-                          ${lockInfo.isLocked
-                            ? `<span class="apple-status-locked-text">Locked • Collect ${lockInfo.requiredStars - totalStars} more stars</span>`
-                            : `Unlocked: <strong>${currentUnlocked}</strong> of ${totalLevels}`
-                          }
-                        </span>
-                        <span class="apple-prog-stars">
-                          <svg viewBox="0 0 24 24" width="12" height="12" fill="#fbbf24" stroke="none">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                          </svg>
-                          ${catStars}/${catMaxStars}
-                        </span>
-                      </div>
-
-                      <div class="apple-progress-track">
-                        <div class="apple-progress-bar" style="width: ${progressPercent}%; background: ${meta.gradient};">
-                          <div class="apple-progress-glow-tip"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Action Bar -->
-                    <div class="apple-action-bar">
-                      ${lockInfo.isLocked ? `
-                        <div class="apple-locked-action">
-                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                          </svg>
-                          <span>Requires ${lockInfo.requiredStars} Total Stars</span>
-                        </div>
-                      ` : `
-                        <button class="apple-play-btn" style="--btn-color: ${meta.accent};">
-                          <span>PLAY ${cat.name.toUpperCase()}</span>
-                          <div class="apple-btn-arrow-circle">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                              <polyline points="9 18 15 12 9 6"/>
-                            </svg>
-                          </div>
-                        </button>
-                      `}
-                    </div>
+        <div class="mode-list">
+          ${CATEGORIES.map((cat) => {
+            const meta = categoryMeta[cat.id] || categoryMeta.beginner;
+            const lockInfo = this.getCategoryLockInfo(cat.id, totalStars);
+            const totalLevels = cat.levelsCount || 30;
+            const currentUnlocked = lockInfo.isLocked ? 0 : Math.min(totalLevels, unlockedMap[cat.id] || 1);
+            const progressPercent = lockInfo.isLocked ? 0 : Math.min(100, Math.round(((currentUnlocked - 1) / totalLevels) * 100));
+            return `
+              <div class="mode-row ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'}" data-cat="${cat.id}">
+                <div class="mode-ico" style="background:${meta.accent}">${meta.svgIcon}</div>
+                <div class="mode-copy">
+                  <div class="mode-name-row">
+                    <h2>${cat.name}</h2>
+                    <span>${lockInfo.isLocked ? 'Locked' : totalLevels + ' levels'}</span>
                   </div>
+                  <p>${meta.tagline}</p>
+                  <div class="mode-track"><i style="width:${progressPercent}%; background:${meta.accent}"></i></div>
                 </div>
-              `;
-            }).join('')}
-          </div>
-        </main>
+                ${lockInfo.isLocked
+                  ? `<div class="mode-lock">${lockInfo.requiredStars}★</div>`
+                  : `<button class="mode-play" type="button">Play</button>`}
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     `;
 
@@ -337,7 +231,7 @@ export class ComplexitySelect {
       });
     }
 
-    const cards = this.container.querySelectorAll('.apple-glass-card.is-unlocked');
+    const cards = this.container.querySelectorAll('.mode-row.is-unlocked');
     cards.forEach(card => {
       card.addEventListener('click', (e) => {
         e.preventDefault();

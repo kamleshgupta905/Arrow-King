@@ -69,18 +69,18 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/arena/')
         with:
           tag_name: v${{ steps.ver.outputs.version }}
-          name: Arrow King v${{ steps.ver.outputs.version }} Premiere APK
+          name: Arrow King v${{ steps.ver.outputs.version }}
           make_latest: true
           body: |
-            **Arrow King v${{ steps.ver.outputs.version }} — Premiere**
+            **Arrow King v${{ steps.ver.outputs.version }}**
 
-            - Royal opening court, gold header, and animated splash
-            - Mode selector with house meters and continue seal
-            - Chamber score: choir, harp, and gold bells
-            - In-game flow combo and cleaner HUD
-            - Phone auto-update from this GitHub release (Arrow-King.apk)
+            Direct download:
+            https://github.com/kamleshgupta905/Arrow-King/releases/download/v${{ steps.ver.outputs.version }}/Arrow-King.apk
 
-            Install the APK, allow unknown-app installs once, and the game will offer the next crown automatically.
+            Always-latest link:
+            https://github.com/kamleshgupta905/Arrow-King/releases/latest/download/Arrow-King.apk
+
+            If install says the app already exists, uninstall the old Arrow King once, then install this file. Future updates use the same signature.
           files: Arrow-King.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

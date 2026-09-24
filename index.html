@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#07080e">
+  <meta name="theme-color" content="#F7F9FC">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
@@ -16,43 +16,44 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
 
+  <style>
+    html, body, #app, #splash-layer { background: #F7F9FC; color: #1A2744; }
+    #splash-layer {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-family: Outfit, -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: opacity .35s ease;
+    }
+    #splash-layer.fade-out { opacity: 0; pointer-events: none; }
+  </style>
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/premiere.css">
+  <link rel="stylesheet" href="/src/studio.css">
 </head>
-<body>
+<body class="studio">
   <div id="app">
     <!-- Game Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Animated Cinematic Opening Splash Screen -->
-    <div id="splash-layer" class="splash-screen-overlay">
-      <div class="splash-ambient-mesh"></div>
-      <div class="splash-glow-halo"></div>
-      <div class="splash-orbit-ring ring-outer"></div>
-      <div class="splash-orbit-ring ring-inner"></div>
-      
-      <div class="splash-icon-wrapper">
-        <div class="splash-holo-sheen"></div>
-        <img src="/icon-512.png" alt="Arrow King Icon" class="splash-animated-icon" />
-        <div class="splash-crown-beam"></div>
-        <div class="splash-metallic-sweep"></div>
+    <div id="splash-layer" class="boot-splash">
+      <div class="boot-board" aria-hidden="true">
+        <svg viewBox="0 0 160 150" class="boot-heart">
+          <g fill="#C5D0DE">
+            <circle cx="48" cy="52" r="1.6"/><circle cx="64" cy="44" r="1.6"/><circle cx="80" cy="40" r="1.6"/>
+            <circle cx="96" cy="44" r="1.6"/><circle cx="112" cy="52" r="1.6"/><circle cx="40" cy="68" r="1.6"/>
+            <circle cx="120" cy="68" r="1.6"/><circle cx="36" cy="84" r="1.6"/><circle cx="124" cy="84" r="1.6"/>
+            <circle cx="52" cy="104" r="1.6"/><circle cx="108" cy="104" r="1.6"/><circle cx="68" cy="118" r="1.6"/>
+            <circle cx="92" cy="118" r="1.6"/><circle cx="80" cy="128" r="1.6"/>
+          </g>
+          <path class="boot-draw" d="M80 126 C80 126 34 98 34 66 C34 48 48 36 62 36 C72 36 78 42 80 50 C82 42 88 36 98 36 C112 36 126 48 126 66 C126 98 80 126 80 126 Z"/>
+          <path class="boot-head" d="M80 126 l-7 -4 h14 z"/>
+        </svg>
+        <div class="boot-shape-name">HEART</div>
       </div>
-
-      <div class="splash-title-wrap">
-        <div class="splash-eyebrow-badge">
-          <span>👑 ROYAL VECTOR ESCAPE</span>
-        </div>
-        <h1 class="splash-game-title">ARROW <span class="accent-title">KING</span></h1>
-        <p class="splash-subtitle-tagline">MASTER THE SEQUENCE • CLAIM THE CROWN</p>
-        
-        <div class="splash-loading-bar">
-          <div class="splash-loading-progress">
-            <div class="splash-laser-head"></div>
-          </div>
-        </div>
-
-        <div class="splash-tap-hint">TAP SCREEN TO START</div>
-      </div>
+      <img src="/icon-512.png" alt="" class="boot-mark" />
+      <h1 class="boot-title">Arrow King</h1>
+      <p class="boot-sub">The board builds the shape you read.</p>
+      <div class="boot-bar"><div id="splash-progress-bar"></div></div>
     </div>
 
     <!-- Opening Animation & Title Layer -->

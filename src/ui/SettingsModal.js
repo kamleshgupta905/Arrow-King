@@ -4,7 +4,7 @@
  */
 
 import { soundManager } from '../audio/SoundManager.js';
-import { updateManager, APP_VERSION } from '../services/UpdateManager.js';
+import { updateManager, APP_VERSION, DIRECT_APK_URL } from '../services/UpdateManager.js';
 
 export class SettingsModal {
   constructor(container, callbacks) {
@@ -61,6 +61,7 @@ export class SettingsModal {
           </div>
 
           <button id="btn-check-update" class="btn btn-secondary settings-update-btn">CHECK FOR UPDATE · v${APP_VERSION}</button>
+          <button id="btn-direct-apk" class="btn btn-secondary settings-update-btn">DIRECT APK DOWNLOAD</button>
           <div id="update-status"></div>
 
           <div class="settings-actions">
@@ -106,6 +107,11 @@ export class SettingsModal {
       soundManager.playTap();
       this.hide();
       if (this.callbacks.onRestart) this.callbacks.onRestart();
+    });
+
+    this.container.querySelector('#btn-direct-apk')?.addEventListener('click', () => {
+      soundManager.playTap();
+      updateManager.openDirectDownload();
     });
 
     this.container.querySelector('#btn-check-update')?.addEventListener('click', () => {
