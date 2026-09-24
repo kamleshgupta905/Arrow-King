@@ -43,22 +43,24 @@ export class IntroScreen {
           </div>
 
           <div class="header-controls">
-            <button id="btn-top-sound" class="header-icon-btn" title="Toggle Sound" aria-label="Toggle Sound">
-              <svg class="sound-icon-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="${this.soundMuted ? 'display:none;' : 'display:block;'}">
+            <button id="btn-top-sound" class="apple-control-btn" title="Toggle Sound" aria-label="Toggle Sound">
+              <div class="control-btn-glow"></div>
+              <svg class="sound-icon-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="${this.soundMuted ? 'display:none;' : 'display:block;'}">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
               </svg>
-              <svg class="sound-icon-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" style="${this.soundMuted ? 'display:block;' : 'display:none;'}">
+              <svg class="sound-icon-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="${this.soundMuted ? 'display:block;' : 'display:none;'}">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                 <line x1="23" y1="9" x2="17" y2="15"/>
                 <line x1="17" y1="9" x2="23" y2="15"/>
               </svg>
             </button>
 
-            <button id="btn-top-settings" class="header-icon-btn" title="Settings" aria-label="Settings">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            <button id="btn-top-settings" class="apple-control-btn btn-settings-control" title="Settings" aria-label="Settings">
+              <div class="control-btn-glow"></div>
+              <svg class="apple-gear-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3.2"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
             </button>
           </div>
@@ -211,7 +213,46 @@ export class IntroScreen {
     `;
 
     this.initCanvasEffects();
+    this.initMotionPhysics();
     this.bindEvents();
+  }
+
+  initMotionPhysics() {
+    const emblem = this.container.querySelector('.hero-emblem-wrapper');
+    if (!emblem) return;
+
+    let targetRotX = 0, targetRotY = 0;
+    let currRotX = 0, currRotY = 0;
+
+    const onPointerMove = (e) => {
+      const rect = emblem.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / (window.innerWidth / 2);
+      const dy = (e.clientY - cy) / (window.innerHeight / 2);
+      targetRotY = Math.max(-14, Math.min(14, dx * 14));
+      targetRotX = Math.max(-14, Math.min(14, -dy * 14));
+    };
+
+    const onPointerLeave = () => {
+      targetRotX = 0;
+      targetRotY = 0;
+    };
+
+    this.container.addEventListener('pointermove', onPointerMove, { passive: true });
+    this.container.addEventListener('pointerleave', onPointerLeave, { passive: true });
+
+    const loop = () => {
+      currRotX += (targetRotX - currRotX) * 0.1;
+      currRotY += (targetRotY - currRotY) * 0.1;
+
+      emblem.style.transform = `perspective(800px) rotateX(${currRotX.toFixed(2)}deg) rotateY(${currRotY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
+
+      if (this.container.style.display !== 'none') {
+        requestAnimationFrame(loop);
+      }
+    };
+    requestAnimationFrame(loop);
   }
 
   bindEvents() {
@@ -222,6 +263,7 @@ export class IntroScreen {
     const settingsBtn = this.container.querySelector('#btn-top-settings');
 
     playBtn?.addEventListener('click', () => {
+      try { if (navigator.vibrate) navigator.vibrate([16]); } catch (_) {}
       soundManager.playTap();
       soundManager.initContext();
       soundManager.startMusic();
@@ -230,6 +272,7 @@ export class IntroScreen {
     });
 
     levelsBtn?.addEventListener('click', () => {
+      try { if (navigator.vibrate) navigator.vibrate([14]); } catch (_) {}
       soundManager.playTap();
       soundManager.initContext();
       this.hide();
@@ -237,6 +280,7 @@ export class IntroScreen {
     });
 
     const handleSoundToggle = () => {
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch (_) {}
       this.soundMuted = soundManager.toggleMute();
       this.updateSoundIcons();
     };
@@ -245,6 +289,7 @@ export class IntroScreen {
     footerSoundBtn?.addEventListener('click', handleSoundToggle);
 
     settingsBtn?.addEventListener('click', () => {
+      try { if (navigator.vibrate) navigator.vibrate(12); } catch (_) {}
       soundManager.playTap();
       if (this.onSettings) this.onSettings();
     });

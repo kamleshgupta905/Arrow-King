@@ -57,16 +57,17 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.3.0
-          name: Arrow King v1.3.0 APK (Apple UI + Splash Fix + AdMob)
+          tag_name: v1.4.0
+          name: Arrow King v1.4.0 APK (Cinematic Opening + Apple Settings + 3D Motion)
           body: |
-            👑 **Arrow King v1.3.0 - Official Android APK**
+            👑 **Arrow King v1.4.0 - Official Android APK**
             
-            - Apple-Grade Liquid Glassmorphic Difficulty Screen
-            - Custom Handcrafted Vector SVG Icons (No Emojis)
-            - Zero White Screen & Custom Dark Splash Transitions
-            - High-Earning AdMob Integration (Rewarded & Interstitial)
-            - 600 Solvable Levels & Offline Ready
+            - 🌟 Animated Cinematic Opening Reveal with 3D Orbit Rings & Metallic Sweep
+            - ⚙️ Apple-Grade Frosted Glass Settings Control Squircle with Rotating Spring Spin
+            - 🕹️ 3D Motion Physics & Interactive Tilt on Hero Emblem & Cards (ThreeUI / MotionSites style)
+            - 📱 Full Responsive Matrix for all phone aspect ratios, foldables & tablets
+            - 🛡️ Zero White Screen & Zero Default Capacitor Logo
+            - 💎 High-Earning AdMob Integration (Rewarded & Interstitial Cooldown)
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

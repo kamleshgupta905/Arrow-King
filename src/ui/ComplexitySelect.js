@@ -193,7 +193,7 @@ export class ComplexitySelect {
         <!-- Complexity Cards Scrollable List -->
         <main class="apple-cards-viewport">
           <div class="apple-cards-container">
-            ${CATEGORIES.map(cat => {
+            ${CATEGORIES.map((cat, idx) => {
               const meta = categoryMeta[cat.id] || categoryMeta.beginner;
               const lockInfo = this.getCategoryLockInfo(cat.id, totalStars);
               const totalLevels = cat.levelsCount || 30;
@@ -205,7 +205,7 @@ export class ComplexitySelect {
               return `
                 <div class="apple-glass-card ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'} ${cat.id === 'hacker' ? 'card-hacker-style' : ''}"
                      data-cat="${cat.id}"
-                     style="--card-accent: ${meta.accent}; --card-glow: ${meta.glow};">
+                     style="--card-accent: ${meta.accent}; --card-glow: ${meta.glow}; --card-idx: ${idx};">
 
                   <!-- Card Specular Highlight Edge -->
                   <div class="apple-card-specular"></div>

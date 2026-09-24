@@ -28,18 +28,34 @@
     <!-- Game Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Animated Game Opening Splash Screen -->
+    <!-- Animated Cinematic Opening Splash Screen -->
     <div id="splash-layer" class="splash-screen-overlay">
+      <div class="splash-ambient-mesh"></div>
       <div class="splash-glow-halo"></div>
+      <div class="splash-orbit-ring ring-outer"></div>
+      <div class="splash-orbit-ring ring-inner"></div>
+      
       <div class="splash-icon-wrapper">
+        <div class="splash-holo-sheen"></div>
         <img src="/icon-512.png" alt="Arrow King Icon" class="splash-animated-icon" />
         <div class="splash-crown-beam"></div>
+        <div class="splash-metallic-sweep"></div>
       </div>
+
       <div class="splash-title-wrap">
-        <h1 class="splash-game-title">ARROW <span class="accent-title">KING</span></h1>
-        <div class="splash-loading-bar">
-          <div class="splash-loading-progress"></div>
+        <div class="splash-eyebrow-badge">
+          <span>👑 ROYAL VECTOR ESCAPE</span>
         </div>
+        <h1 class="splash-game-title">ARROW <span class="accent-title">KING</span></h1>
+        <p class="splash-subtitle-tagline">MASTER THE SEQUENCE • CLAIM THE CROWN</p>
+        
+        <div class="splash-loading-bar">
+          <div class="splash-loading-progress">
+            <div class="splash-laser-head"></div>
+          </div>
+        </div>
+
+        <div class="splash-tap-hint">TAP SCREEN TO START</div>
       </div>
     </div>
 

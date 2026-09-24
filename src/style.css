@@ -129,25 +129,74 @@ html, body {
   pointer-events: none;
 }
 
+.splash-ambient-mesh {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 40% 40%, rgba(168, 85, 247, 0.25) 0%, transparent 40%),
+              radial-gradient(circle at 60% 60%, rgba(6, 182, 212, 0.22) 0%, transparent 40%);
+  filter: blur(60px);
+  animation: meshDrift 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes meshDrift {
+  0% { transform: rotate(0deg) scale(1); }
+  100% { transform: rotate(18deg) scale(1.1); }
+}
+
 .splash-glow-halo {
   position: absolute;
-  width: 320px;
-  height: 320px;
+  width: 380px;
+  height: 380px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.45) 0%, rgba(6, 182, 212, 0.25) 45%, transparent 72%);
-  filter: blur(36px);
-  animation: splashPulse 2.8s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, rgba(6, 182, 212, 0.3) 45%, transparent 72%);
+  filter: blur(44px);
+  animation: splashPulse 2.6s ease-in-out infinite alternate;
 }
 
 @keyframes splashPulse {
-  0% { transform: scale(0.92); opacity: 0.65; }
-  100% { transform: scale(1.15); opacity: 1; }
+  0% { transform: scale(0.92); opacity: 0.6; }
+  100% { transform: scale(1.18); opacity: 1; }
+}
+
+/* 3D Holographic Orbit Rings */
+.splash-orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(192, 132, 252, 0.35);
+  pointer-events: none;
+}
+
+.splash-orbit-ring.ring-outer {
+  width: 250px;
+  height: 250px;
+  border-color: rgba(6, 182, 212, 0.3);
+  animation: orbitRotate 10s linear infinite;
+}
+
+.splash-orbit-ring.ring-inner {
+  width: 210px;
+  height: 210px;
+  border-color: rgba(168, 85, 247, 0.4);
+  animation: orbitRotateRev 7s linear infinite;
+}
+
+@keyframes orbitRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbitRotateRev {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
 }
 
 .splash-icon-wrapper {
   position: relative;
-  width: 170px;
-  height: 170px;
+  width: 176px;
+  height: 176px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,10 +206,10 @@ html, body {
 @keyframes splashIconEntrance {
   0% {
     opacity: 0;
-    transform: scale(0.4) rotate(-10deg);
+    transform: scale(0.3) rotate(-15deg);
   }
   70% {
-    transform: scale(1.08) rotate(2deg);
+    transform: scale(1.1) rotate(2deg);
   }
   100% {
     opacity: 1;
@@ -173,7 +222,7 @@ html, body {
   height: 100%;
   object-fit: contain;
   border-radius: 38px;
-  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.6), 0 0 60px rgba(6, 182, 212, 0.35);
+  box-shadow: 0 14px 45px rgba(168, 85, 247, 0.65), 0 0 65px rgba(6, 182, 212, 0.4);
   animation: splashIconFloat 3.2s ease-in-out infinite alternate;
 }
 
@@ -183,15 +232,31 @@ html, body {
   100% { transform: translateY(0) rotate(0deg); }
 }
 
+/* Metallic Light Sweep Effect Across Icon */
+.splash-metallic-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 38px;
+  background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
+  background-size: 200% 200%;
+  pointer-events: none;
+  animation: metallicSweep 2.8s ease-in-out infinite;
+}
+
+@keyframes metallicSweep {
+  0% { background-position: -150% 0; }
+  50%, 100% { background-position: 250% 0; }
+}
+
 .splash-crown-beam {
   position: absolute;
-  top: -24px;
-  width: 140%;
-  height: 60px;
-  background: radial-gradient(ellipse at 50% 100%, rgba(253, 224, 71, 0.4) 0%, transparent 70%);
-  filter: blur(8px);
+  top: -28px;
+  width: 150%;
+  height: 70px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(253, 224, 71, 0.5) 0%, transparent 72%);
+  filter: blur(10px);
   pointer-events: none;
-  animation: beamFlicker 2.4s ease-in-out infinite;
+  animation: beamFlicker 2.2s ease-in-out infinite;
 }
 
 @keyframes beamFlicker {
@@ -200,49 +265,98 @@ html, body {
 }
 
 .splash-title-wrap {
-  margin-top: 28px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   animation: splashTextFade 0.9s ease-out 0.4s both;
 }
 
 @keyframes splashTextFade {
-  0% { opacity: 0; transform: translateY(18px); }
+  0% { opacity: 0; transform: translateY(20px); }
   100% { opacity: 1; transform: translateY(0); }
+}
+
+.splash-eyebrow-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
 }
 
 .splash-game-title {
   font-family: var(--font-display);
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: #ffffff;
   margin: 0;
-  text-shadow: 0 0 20px rgba(192, 132, 252, 0.6);
+  text-shadow: 0 0 24px rgba(192, 132, 252, 0.7);
 }
 
 .splash-game-title .accent-title {
-  color: #c084fc;
-  text-shadow: 0 0 28px rgba(168, 85, 247, 0.85);
+  background: linear-gradient(135deg, #c084fc 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8));
+}
+
+.splash-subtitle-tagline {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #94a3b8;
+  margin: -4px 0 6px;
 }
 
 .splash-loading-bar {
-  width: 150px;
-  height: 4px;
+  position: relative;
+  width: 170px;
+  height: 5px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .splash-loading-progress {
+  position: relative;
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, #06b6d4, #a855f7, #ec4899);
   border-radius: var(--radius-full);
   animation: splashLoading 1.8s ease-in-out infinite;
+}
+
+.splash-laser-head {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: #ffffff;
+  filter: blur(1.5px);
+  box-shadow: 0 0 8px #ffffff;
+}
+
+.splash-tap-hint {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 6px;
+  animation: hintBlink 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes hintBlink {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.85; }
 }
 
 @keyframes splashLoading {
@@ -409,16 +523,75 @@ html, body {
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* Apple-Grade Glassmorphic Control Squircles */
+.apple-control-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(16, 22, 44, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  overflow: hidden;
+}
+
+.control-btn-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(168, 85, 247, 0.35) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.apple-control-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  border-color: rgba(192, 132, 252, 0.45);
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.apple-control-btn:hover .control-btn-glow {
+  opacity: 1;
+}
+
+.apple-control-btn:active {
+  transform: scale(0.92);
+}
+
+/* Gear Icon Interactive Spin */
+.apple-gear-icon {
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), stroke 0.2s ease;
+}
+
+.apple-control-btn.btn-settings-control:hover .apple-gear-icon {
+  transform: rotate(60deg);
+  stroke: #c084fc;
+}
+
+.apple-control-btn.btn-settings-control:active .apple-gear-icon {
+  transform: rotate(120deg) scale(0.92);
+}
+
+/* Legacy fallback */
 .header-icon-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: rgba(26, 35, 60, 0.65);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #cbd5e1;
   display: flex;
   align-items: center;
@@ -428,8 +601,8 @@ html, body {
 }
 
 .header-icon-btn:hover, .header-icon-btn:active {
-  background: rgba(168, 85, 247, 0.2);
-  border-color: rgba(192, 132, 252, 0.4);
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(192, 132, 252, 0.5);
   color: #ffffff;
   transform: scale(1.05);
 }
@@ -975,7 +1148,7 @@ html, body {
   gap: 15px;
 }
 
-/* Glass Card */
+/* Glass Card with Staggered Entrance */
 .apple-glass-card {
   position: relative;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(14, 19, 36, 0.76);
@@ -986,6 +1159,19 @@ html, body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
   touch-action: manipulation;
+  animation: appleCardSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--card-idx, 0) * 65ms);
+}
+
+@keyframes appleCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .apple-glass-card.is-unlocked {
@@ -2098,4 +2284,148 @@ html, body {
   color: var(--text-muted);
   line-height: 1.5;
   margin-bottom: 24px;
+}
+
+/* ==========================================================================
+   ADVANCED MOTION PHYSICS & RESPONSIVE ADAPTATIONS (APPLE / MOTIONSITES STYLE)
+   ========================================================================== */
+
+/* Shimmer Sweep Animation on Primary Hero Button */
+.btn-hero-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-hero-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(60deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: rotate(25deg);
+  animation: buttonShineSweep 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes buttonShineSweep {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  35%, 100% { transform: translateX(100%) rotate(25deg); }
+}
+
+/* Tactile Spring Reactions on All Interactive Elements */
+.btn-hero-primary:active {
+  transform: scale(0.95) translateY(2px) !important;
+}
+
+.btn-hero-secondary:active {
+  transform: scale(0.95) translateY(1px) !important;
+}
+
+.hud-icon-btn:active, .footer-sound-btn:active {
+  transform: scale(0.9) !important;
+}
+
+/* Smooth Pulse for In-Game Undo & Hint Badges */
+.hud-btn-badge {
+  animation: badgeBreathe 2s ease-in-out infinite alternate;
+}
+
+@keyframes badgeBreathe {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT MATRIX (ALL PHONES, FOLDABLES & TABLETS)
+   ========================================================================== */
+
+/* Small & Compact Phones (e.g. height < 740px) */
+@media (max-height: 740px) {
+  .hero-emblem-wrapper {
+    width: 140px;
+    height: 140px;
+    margin-bottom: 6px;
+  }
+  .hero-app-icon-img {
+    width: 118px;
+    height: 118px;
+    border-radius: 26px;
+  }
+  .hero-game-title {
+    font-size: 2.1rem;
+    margin-bottom: 2px;
+  }
+  .hero-game-subtitle {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .features-capsule-strip {
+    padding: 6px 12px;
+    margin-bottom: 10px;
+    max-width: 320px;
+  }
+  .capsule-info .info-primary {
+    font-size: 0.72rem;
+  }
+  .capsule-info .info-secondary {
+    font-size: 0.62rem;
+  }
+  .intro-actions-group {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .btn-hero-primary {
+    padding: 11px 20px;
+    font-size: 0.9rem;
+  }
+  .btn-hero-secondary {
+    padding: 10px 18px;
+    font-size: 0.84rem;
+  }
+  .intro-footer-bar {
+    margin-bottom: 6px;
+  }
+}
+
+/* Ultra-Compact Screens (height < 650px) */
+@media (max-height: 650px) {
+  .hero-emblem-wrapper {
+    width: 115px;
+    height: 115px;
+    margin-bottom: 4px;
+  }
+  .hero-app-icon-img {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+  }
+  .hero-game-title {
+    font-size: 1.8rem;
+  }
+  .features-capsule-strip {
+    display: none; /* Hide capsule to guarantee zero scrolling on tiny screens */
+  }
+}
+
+/* Tablets & Desktop Viewports (min-width: 600px) */
+@media (min-width: 600px) {
+  .intro-main-body {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .features-capsule-strip {
+    max-width: 420px;
+    padding: 10px 22px;
+  }
+  .intro-actions-group {
+    max-width: 360px;
+  }
+  .apple-cards-container {
+    max-width: 560px;
+  }
+  .modal-card {
+    max-width: 460px;
+  }
 }
