@@ -287,7 +287,7 @@ export class LevelSelect {
     }
 
     // Draw solid sharp arrow lines
-    ctx.lineWidth = Math.max(2.4, cellSize * 0.22);
+    ctx.lineWidth = Math.max(2.8, cellSize * 0.42);
     ctx.lineCap = 'square';
     ctx.lineJoin = 'miter';
     ctx.miterLimit = 4;

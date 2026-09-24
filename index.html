@@ -22,9 +22,24 @@
       position: fixed; inset: 0; z-index: 1000;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       font-family: Outfit, -apple-system, BlinkMacSystemFont, sans-serif;
-      transition: opacity .35s ease;
+      text-align: center;
     }
-    #splash-layer.fade-out { opacity: 0; pointer-events: none; }
+    #splash-layer.fade-out { opacity: 0; pointer-events: none; transition: opacity .28s ease; }
+    .logo-stage { width: 148px; height: 148px; position: relative; display: grid; place-items: center; }
+    .logo-ring { position: absolute; inset: 8px; border-radius: 36px; border: 2px solid #D5DEEC; opacity: 0; }
+    .boot-mark-svg { width: 112px; height: 112px; opacity: 0; }
+    .boot-title { margin: 12px 0 0; font-size: 34px; line-height: 1; letter-spacing: -0.04em; font-weight: 760; color: #1A2744; opacity: 0; }
+    .boot-sub { margin: 8px 0 0; color: #64748B; font-size: 14px; opacity: 0; }
+    .boot-bar { width: 132px; height: 3px; background: #E3E8F0; border-radius: 99px; margin-top: 22px; overflow: hidden; }
+    #splash-progress-bar { width: 0; height: 100%; background: #1A2744; }
+    #splash-layer.is-live .logo-ring { animation: ringIn .55s ease both, ringPulse 1.6s ease-in-out .55s infinite; }
+    #splash-layer.is-live .boot-mark-svg { animation: logoPop .58s cubic-bezier(.2,.85,.2,1) both; }
+    #splash-layer.is-live .boot-title { animation: rise .46s ease .12s both; }
+    #splash-layer.is-live .boot-sub { animation: rise .46s ease .22s both; }
+    @keyframes logoPop { from { transform: scale(.74); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes ringIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+    @keyframes ringPulse { 50% { transform: scale(1.045); } }
   </style>
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/premiere.css">
@@ -38,12 +53,37 @@
     <div id="splash-layer" class="boot-splash">
       <div class="logo-stage" aria-hidden="true">
         <div class="logo-ring"></div>
-        <img src="/icon-512.png" alt="" class="boot-mark" />
+        <svg class="boot-mark-svg" viewBox="0 0 120 120">
+          <path fill="#1A2744" d="M60 16l16 22h-10v28h-12V38H44z"/>
+          <path fill="#1A2744" d="M18 48l16-12-4 16 18 14h-12L24 56l-4 14z"/>
+          <path fill="#1A2744" d="M102 48L86 36l4 16-18 14h12l12-10 4 14z"/>
+        </svg>
       </div>
       <h1 class="boot-title">Arrow King</h1>
       <p class="boot-sub">Tap the free arrow. Clear the shape.</p>
       <div class="boot-bar"><div id="splash-progress-bar"></div></div>
     </div>
+    <script>
+      (function () {
+        var tries = 0;
+        function reveal() {
+          var splash = document.getElementById('splash-layer');
+          var cap = window.Capacitor;
+          var ready = cap && cap.nativePromise;
+          tries += 1;
+          if (!ready && tries < 8) {
+            requestAnimationFrame(reveal);
+            return;
+          }
+          if (splash && !splash.classList.contains('is-live')) {
+            splash.classList.add('is-live');
+            window.__akSplashAt = performance.now();
+          }
+          if (ready) cap.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 60 }).catch(function () {});
+        }
+        requestAnimationFrame(reveal);
+      })();
+    </script>
 
     <!-- Opening Animation & Title Layer -->
     <div id="intro-layer" class="ui-layer"></div>

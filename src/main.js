@@ -75,9 +75,10 @@ class GameApp {
     // Initialize UI
     this.initUI();
 
-    // Dismiss native splash screen smoothly now that web DOM & canvas are ready
+    // Native splash is already hidden by the inline first-paint script.
+    // Retry once in case the bridge was not ready yet.
     try {
-      SplashScreen.hide({ fadeOutDuration: 400 });
+      SplashScreen.hide({ fadeOutDuration: 80 });
     } catch (_) {}
 
     // Initialize Services: AdMob & Auto-Update Check
@@ -98,9 +99,13 @@ class GameApp {
   triggerSplashAnimation() {
     if (!this.splashContainer) return;
 
+    if (!this.splashContainer.classList.contains('is-live')) {
+      this.splashContainer.classList.add('is-live');
+      window.__akSplashAt = performance.now();
+    }
     const bar = document.getElementById('splash-progress-bar');
-    const started = performance.now();
-    const duration = 2200;
+    const started = window.__akSplashAt || performance.now();
+    const duration = 1500;
 
     const tick = (now) => {
       if (this.splashDismissed) return;

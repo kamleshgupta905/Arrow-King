@@ -235,6 +235,13 @@ export class Board {
       arrow.isEscaping = true;
       arrow.escapeProgress = 0;
       arrow.isHighlighted = false;
+      let bodyLength = 0;
+      for (let i = 0; i < arrow.points.length - 1; i++) {
+        bodyLength += Math.hypot(arrow.points[i + 1].x - arrow.points[i].x, arrow.points[i + 1].y - arrow.points[i].y);
+      }
+      const exitLen = Math.max(8, Math.min(this.width, this.height) * 0.72);
+      arrow.escapeTravel = bodyLength + exitLen;
+      arrow.escapeDuration = Math.min(2.15, Math.max(0.92, arrow.escapeTravel / 13));
 
       soundManager.playSlide();
       soundManager.playLockIn();
@@ -279,7 +286,7 @@ export class Board {
       // 1. Escaping animation: smooth snake slither off board
       if (arrow.isEscaping) {
         anyEscaping = true;
-        arrow.escapeProgress += dt / 0.55;
+        arrow.escapeProgress += dt / (arrow.escapeDuration || 1.15);
 
         if (arrow.escapeProgress >= 1.0) {
           arrow.escapeProgress = 1.0;
@@ -287,16 +294,6 @@ export class Board {
           arrow.isEscaped = true;
           this.notifyRemaining();
           this.checkVictory();
-        } else {
-          // Trail particles
-          const head = arrow.points[arrow.points.length - 1];
-          const dx = arrow.dir === 'RIGHT' ? 1 : arrow.dir === 'LEFT' ? -1 : 0;
-          const dy = arrow.dir === 'DOWN' ? 1 : arrow.dir === 'UP' ? -1 : 0;
-          const currentX = head.x + dx * arrow.escapeProgress * 6;
-          const currentY = head.y + dy * arrow.escapeProgress * 6;
-          if (this.particles) {
-            this.particles.emitTrail(currentX, currentY);
-          }
         }
       }
 

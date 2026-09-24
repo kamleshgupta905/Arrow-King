@@ -27,12 +27,12 @@ export const SNAKE_PALETTES = [
 ];
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 3, minArrows: 36, maxArrows: 90 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.15, maxTurns: 3, minArrows: 48, maxArrows: 120 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.65, maxTurns: 3, minArrows: 800, maxArrows: 850 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.25, maxTurns: 4, minArrows: 60, maxArrows: 140 },
-  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.35, maxTurns: 4, minArrows: 70, maxArrows: 160 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.65, maxTurns: 3, minArrows: 800, maxArrows: 850, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 3, minArrows: 8, maxArrows: 18 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.08, maxTurns: 4, minArrows: 10, maxArrows: 22 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.12, maxTurns: 4, minArrows: 12, maxArrows: 26 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.16, maxTurns: 4, minArrows: 12, maxArrows: 28 },
+  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.18, maxTurns: 4, minArrows: 14, maxArrows: 30 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.18, maxTurns: 4, minArrows: 14, maxArrows: 30, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -1556,12 +1556,19 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   const baseShape = getCategoryShape(category, num);
 
   // Progressive scaling across levels 1..100
-  const progScale = 1.0 + ((num - 1) / 99) * 0.20;
-  const isGiant = (catDef.minArrows >= 800);
-  const totalScale = isGiant ? (3.8 * progScale) : ((catDef.scale || 1.0) * progScale);
+  const progScale = 1.0 + ((num - 1) / 99) * 0.08;
+  const totalScale = (catDef.scale || 1.0) * progScale;
 
-  const width = Math.round(baseShape.width * totalScale);
-  const height = Math.round(baseShape.height * totalScale);
+  let width = Math.round(baseShape.width * totalScale);
+  let height = Math.round(baseShape.height * totalScale);
+  const maxDim = 20;
+  const dim = Math.max(width, height);
+  if (dim > maxDim) {
+    const k = maxDim / dim;
+    width = Math.max(14, Math.round(width * k));
+    height = Math.max(14, Math.round(height * k));
+  }
+  const isGiant = false;
   const mask = baseShape.mask;
 
   const seed = (catDef.id.charCodeAt(0) * 10007) + (num * 1013) + (baseShape.id * 73);
@@ -1586,9 +1593,9 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     const scaledTarget = Math.round(minA + ((num - 1) / 99) * (maxA - minA));
     targetArrows = Math.min(scaledTarget, Math.max(12, Math.round(shapeArea * 0.45)));
   } else {
-    const minA = catDef.minArrows || 24;
-    const maxA = catDef.maxArrows || 120;
-    targetArrows = Math.max(minA, Math.min(maxA, Math.round(shapeArea * 0.42)));
+    const minA = catDef.minArrows || 8;
+    const maxA = catDef.maxArrows || 24;
+    targetArrows = Math.max(minA, Math.min(maxA, Math.round(shapeArea / 6.2)));
   }
 
   const gridPts = new Uint8Array(width * height);
@@ -1630,10 +1637,10 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     let curPt = { ...startPt };
 
     // Adaptive segment lengths: larger snakes initially, compact dominoes as board fills
-    const crowded = orderedArrows.length > (targetArrows * 0.25);
-    const veryCrowded = orderedArrows.length > (targetArrows * 0.55);
-    const maxTurns = veryCrowded ? 1 : (crowded ? 2 : (catDef.maxTurns || 3));
-    const numSegments = veryCrowded ? 1 : (1 + Math.floor(rng() * maxTurns));
+    const crowded = orderedArrows.length > (targetArrows * 0.45);
+    const veryCrowded = orderedArrows.length > (targetArrows * 0.78);
+    const maxTurns = veryCrowded ? 2 : (catDef.maxTurns || 3);
+    const numSegments = veryCrowded ? 2 : (2 + Math.floor(rng() * Math.max(1, maxTurns - 1)));
     let lastDir = null;
     let lastTurnRot = 0;
 
@@ -1664,8 +1671,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
         lastTurnRot = getTurnDirection(lastDir, chosenDir);
       }
 
-      const fillingGaps = attempts > 3500;
-      const runLength = (veryCrowded || fillingGaps) ? (1 + Math.floor(rng() * 2)) : (crowded ? (2 + Math.floor(rng() * 3)) : (3 + Math.floor(rng() * 5)));
+      const fillingGaps = attempts > 6000;
+      const runLength = fillingGaps ? (2 + Math.floor(rng() * 3)) : (veryCrowded ? (3 + Math.floor(rng() * 3)) : (4 + Math.floor(rng() * 5)));
       for (let s = 0; s < runLength; s++) {
         const nx = curPt.x + chosenDir.dx;
         const ny = curPt.y + chosenDir.dy;
@@ -1723,20 +1730,27 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
 
     let chosenPath, chosenHead, chosenDir, chosenImpactDist;
 
+    const exitsSoon = (head, dir) => {
+      const nx = head.x + dir.dx;
+      const ny = head.y + dir.dy;
+      return !mask(nx, ny, width, height);
+    };
+
     if (orderedArrows.length < targetStrictFree) {
-      // First 1-3 arrows: direct exit out of the shape
-      if (!hit0 && hitRes0.arrow === null) {
+      // First arrows leave through the rim so their exit does not carve the silhouette.
+      if (!hit0 && hitRes0.arrow === null && exitsSoon(h0, dir0)) {
         chosenPath = path; chosenHead = h0; chosenDir = dir0; chosenImpactDist = 999;
-      } else if (!hit1 && hitRes1.arrow === null) {
+      } else if (!hit1 && hitRes1.arrow === null && exitsSoon(h1, dir1)) {
         chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1; chosenImpactDist = 999;
       } else {
         continue;
       }
     } else {
       // All subsequent arrows: MUST point directly into an earlier arrow!
-      if (!hit0 && hitRes0.arrow !== null) {
+      const closeEnough = (hit) => hit.arrow !== null && hit.dist <= (attempts > 4000 ? 5 : 3);
+      if (!hit0 && closeEnough(hitRes0)) {
         chosenPath = path; chosenHead = h0; chosenDir = dir0; chosenImpactDist = hitRes0.dist;
-      } else if (!hit1 && hitRes1.arrow !== null) {
+      } else if (!hit1 && closeEnough(hitRes1)) {
         chosenPath = path.slice().reverse(); chosenHead = h1; chosenDir = dir1; chosenImpactDist = hitRes1.dist;
       } else {
         continue;
@@ -1783,6 +1797,90 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     covered += chosenPath.length;
     if (attempts % 8 === 0) {
       availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
+    }
+  }
+
+  // Second pass: chunky 3-5 cell arrows fill the silhouette without shrinking to stubs.
+  availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
+  let fillTries = 0;
+  const fillGoal = Math.round(shapeArea * 0.86);
+  while (fillTries < 5000 && covered < fillGoal && availablePoints.length > 2) {
+    fillTries++;
+    if (fillTries % 10 === 0) {
+      availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
+      if (availablePoints.length < 3) break;
+    }
+    const start = availablePoints[Math.floor(rng() * availablePoints.length)];
+    if (!start || gridPts[start.y * width + start.x]) continue;
+
+    const dirOrder = [...DIRS].sort(() => rng() - 0.5);
+    for (const d of dirOrder) {
+      const path = [{ x: start.x, y: start.y }];
+      let cur = { x: start.x, y: start.y };
+      const run = 1 + Math.floor(rng() * 4);
+      let blocked = false;
+      for (let s = 0; s < run; s++) {
+        const nx = cur.x + d.dx;
+        const ny = cur.y + d.dy;
+        if (!mask(nx, ny, width, height) || gridPts[ny * width + nx]) break;
+        if (d.dx !== 0) {
+          if (hSeg[cur.y * width + Math.min(cur.x, nx)]) { blocked = true; break; }
+        } else if (vSeg[Math.min(cur.y, ny) * width + cur.x]) { blocked = true; break; }
+        if (rayGrid[ny * width + nx]) { blocked = true; break; }
+        cur = { x: nx, y: ny };
+        path.push(cur);
+      }
+      if (blocked || path.length < 2) continue;
+      if (path.some((p) => rayGrid[p.y * width + p.x])) continue;
+      if (arrowHitsSelf(path, d.name)) continue;
+      const hit = getFirstHitArrow(path[path.length - 1].x, path[path.length - 1].y, d, orderedArrows);
+      if (!hit.arrow) continue;
+
+      for (let i = 0; i < path.length; i++) {
+        gridPts[path[i].y * width + path[i].x] = 1;
+        if (i > 0) {
+          const p1 = path[i - 1];
+          const p2 = path[i];
+          if (p1.y === p2.y) hSeg[p1.y * width + Math.min(p1.x, p2.x)] = 1;
+          else vSeg[Math.min(p1.y, p2.y) * width + p1.x] = 1;
+        }
+      }
+      let rx = path[path.length - 1].x + d.dx;
+      let ry = path[path.length - 1].y + d.dy;
+      let step = 0;
+      while (step < Math.max(width, height) && rx >= 0 && rx < width && ry >= 0 && ry < height) {
+        if (gridPts[ry * width + rx] || !mask(rx, ry, width, height)) break;
+        rayGrid[ry * width + rx] = 1;
+        rx += d.dx;
+        ry += d.dy;
+        step++;
+      }
+      const snap = {
+        grid: gridPts.slice(),
+        ray: rayGrid.slice(),
+        h: hSeg.slice(),
+        v: vSeg.slice(),
+        covered
+      };
+      orderedArrows.push({
+        id: `arrow_${orderedArrows.length + 1}`,
+        points: path,
+        head: { ...path[path.length - 1] },
+        tail: { ...path[0] },
+        dir: d.name,
+        dirVec: d,
+        impactDist: hit.dist
+      });
+      if (!solveLevelStepByStep(orderedArrows).solved) {
+        orderedArrows.pop();
+        gridPts.set(snap.grid);
+        rayGrid.set(snap.ray);
+        hSeg.set(snap.h);
+        vSeg.set(snap.v);
+        continue;
+      }
+      covered += path.length;
+      break;
     }
   }
 

@@ -4,8 +4,6 @@
  */
 
 import { soundManager } from '../audio/SoundManager.js';
-import { APP_VERSION } from '../services/UpdateManager.js';
-
 const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>`;
 
 export class IntroScreen {
@@ -150,7 +148,6 @@ export class IntroScreen {
               ${Array.from({ length: 18 }, () => '<span></span>').join('')}
             </div>
             <div class="court-listening" id="court-listening">${this.soundMuted ? 'MUSIC SILENCED' : 'ROYAL COURT SCORE'}</div>
-            <div class="footer-version-tag">v${APP_VERSION} · AUTO-UPDATE</div>
           </div>
         </main>
 

@@ -54,7 +54,7 @@ export class SettingsModal {
             <div class="guide-title">HOW TO PLAY</div>
             <ul class="guide-list">
               <li>Tap arrows to glide them along the maze rails.</li>
-              <li>Each arrow lands in its slot to build the target shape outline.</li>
+              <li>Clear arrows in order. The remaining arrows are the shape.</li>
               <li>If an arrow is blocked by another arrow, clear the blocker first!</li>
               <li>Use <strong>Hint</strong> or <strong>Undo</strong> whenever needed.</li>
             </ul>

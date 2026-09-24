@@ -21,15 +21,13 @@ body.studio #app {
   display: grid;
   place-items: center;
   margin-bottom: 6px;
-  animation: logoPop 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .logo-ring {
   position: absolute;
-  inset: 0;
+  inset: 8px;
   border-radius: 36px;
   border: 2px solid #D7E2F5;
-  animation: ringPulse 1.6s ease-in-out infinite;
 }
 
 .logo-mark { width: 92px; height: 92px; fill: #1A2744; }
@@ -181,8 +179,17 @@ body.studio .brand-kicker,
 body.studio .premiere-kicker,
 body.studio .apple-header-eyebrow,
 body.studio .hero-game-subtitle,
-body.studio .footer-version-tag {
+body.studio .footer-version-tag,
+body.studio .settings-version {
   color: #64748B !important;
+}
+
+body.studio .settings-version {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 2px 0 8px;
 }
 
 body.studio .rank-chip,

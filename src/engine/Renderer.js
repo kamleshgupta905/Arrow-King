@@ -142,9 +142,9 @@ export class Renderer {
     this.boardH = boardH;
 
     // Clear the premiere header + star/path capsule, and the bottom dock.
-    const topInset = 118;
-    const bottomInset = 96;
-    const sideInset = 28;
+    const topInset = 108;
+    const bottomInset = 84;
+    const sideInset = 14;
 
     const availableW = Math.max(80, this.width - sideInset * 2);
     const availableH = Math.max(80, this.height - (topInset + bottomInset));
@@ -563,9 +563,9 @@ export class Renderer {
     ctx.save();
 
     // High visibility line width that scales with cell size
-    const lineWidth = Math.max(4.2, this.cellSize * 0.36);
-    const headLength = Math.max(9, this.cellSize * 0.52);
-    const headWidth = Math.max(8, this.cellSize * 0.46);
+    const lineWidth = Math.max(7.2, Math.min(this.cellSize * 0.5, 16));
+    const headLength = lineWidth * 1.12;
+    const headWidth = lineWidth * 1.42;
 
     for (const arrow of board.arrows) {
       if (arrow.isEscaped) continue;
@@ -589,19 +589,19 @@ export class Renderer {
       let gridHead = arrow.points[arrow.points.length - 1];
 
       if (arrow.isEscaping) {
-        const totalExitDist = Math.max(board.width, board.height) * 1.5;
+        const totalExitDist = Math.max(8, Math.min(board.width, board.height) * 0.72);
         let bodyLength = 0;
         for (let i = 0; i < arrow.points.length - 1; i++) {
           bodyLength += Math.hypot(arrow.points[i+1].x - arrow.points[i].x, arrow.points[i+1].y - arrow.points[i].y);
         }
-        const totalDist = bodyLength + totalExitDist;
-        const eased = Math.pow(arrow.escapeProgress, 1.4);
-        const forwardDist = eased * totalDist;
+        const totalDist = arrow.escapeTravel || (bodyLength + totalExitDist);
+        const p = Math.max(0, Math.min(1, arrow.escapeProgress));
+        const forwardDist = p * totalDist;
 
         const slither = this.getSlitheringPath(arrow, board, forwardDist);
         gridPoints = slither.points;
         gridHead = slither.head;
-        opacity = Math.max(0, 1 - Math.pow(arrow.escapeProgress, 2.5));
+        opacity = p < 0.97 ? 1 : Math.max(0, (1 - p) / 0.03);
       } else if (arrow.isColliding) {
         const p = arrow.collisionProgress;
         let forwardDist = 0;
@@ -652,22 +652,25 @@ export class Renderer {
 
       ctx.strokeStyle = strokeColor;
       ctx.fillStyle = strokeColor;
-      ctx.lineWidth = (arrow.isColliding || arrow.isHighlighted) ? lineWidth * 1.15 : lineWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      ctx.lineWidth = (arrow.isColliding || arrow.isHighlighted) ? lineWidth * 1.08 : lineWidth;
+      ctx.lineCap = 'butt';
+      ctx.lineJoin = 'miter';
+      ctx.miterLimit = 2.2;
 
-      // Draw polyline body
       if (screenPoints.length >= 2) {
+        const last = screenPoints[screenPoints.length - 1];
+        const prev = screenPoints[screenPoints.length - 2];
+        const seg = Math.hypot(last.x - prev.x, last.y - prev.y) || 1;
+        const cut = Math.min(headLength * 0.62, Math.max(0, seg - 1.5));
+        const endX = last.x - ((last.x - prev.x) / seg) * cut;
+        const endY = last.y - ((last.y - prev.y) / seg) * cut;
+
         ctx.beginPath();
         ctx.moveTo(screenPoints[0].x, screenPoints[0].y);
-
         for (let i = 1; i < screenPoints.length - 1; i++) {
           ctx.lineTo(screenPoints[i].x, screenPoints[i].y);
         }
-
-        const baseEndX = tipX - dx * (headLength * 0.70);
-        const baseEndY = tipY - dy * (headLength * 0.70);
-        ctx.lineTo(baseEndX, baseEndY);
+        ctx.lineTo(endX, endY);
         ctx.stroke();
       }
 
@@ -695,7 +698,7 @@ export class Renderer {
     ctx.save();
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
-    ctx.lineJoin = 'round';
+    ctx.lineJoin = 'miter';
 
     let angle = 0;
     if (dir === 'RIGHT') angle = 0;
