@@ -236,11 +236,13 @@ export class Board {
       for (let i = 0; i < arrow.points.length - 1; i++) {
         bodyLength += Math.hypot(arrow.points[i + 1].x - arrow.points[i].x, arrow.points[i + 1].y - arrow.points[i].y);
       }
-      const exitLen = Math.max(8, Math.min(this.width, this.height) * 0.72);
-      arrow.escapeTravel = bodyLength + exitLen;
-      arrow.escapeDuration = Math.min(1.65, Math.max(0.58, arrow.escapeTravel / 16));
+      const head = arrow.points[arrow.points.length - 1];
+      const measured = this.exitClearance ? this.exitClearance(arrow) : null;
+      const clearance = measured == null ? this.fallbackClearance(head, arrow.dir) : measured;
+      arrow.escapeTravel = bodyLength + clearance;
+      arrow.escapeDuration = Math.min(3.4, Math.max(0.55, arrow.escapeTravel / 12));
 
-      soundManager.beginScrape(arrow.id);
+      soundManager.beginScrape(arrow.id, arrow.escapeDuration);
 
       // Record for Undo
       this.moveHistory.push({ arrowId: arrow.id });
@@ -269,7 +271,7 @@ export class Board {
       arrow.isHighlighted = true;
       arrow.blockerId = result.blocker ? result.blocker.id : null;
 
-      soundManager.beginScrape(arrow.id);
+      soundManager.beginScrape(arrow.id, arrow.collisionDuration);
       soundManager.playStarLoss();
 
       return false;
@@ -329,6 +331,7 @@ export class Board {
           arrow.isHighlighted = false;
           arrow.hasImpacted = false;
           arrow.blockerId = null;
+          soundManager.endScrape(arrow.id);
 
           // Check if all 3 stars are exhausted: automatic restart!
           if (this.stars === 0 && !this.isRestarting) {
@@ -353,6 +356,17 @@ export class Board {
         this.triggerTimeUpRestart();
       }
     }
+
+    const stillMoving = this.arrows.some(a => a.isEscaping || a.isColliding);
+    if (!stillMoving) soundManager.stopAllScrapes();
+  }
+
+  fallbackClearance(head, dir) {
+    const edge = dir === 'RIGHT' ? (this.width - head.x)
+      : dir === 'LEFT' ? head.x
+      : dir === 'DOWN' ? (this.height - head.y)
+      : head.y;
+    return edge + 16;
   }
 
   /**
@@ -408,6 +422,7 @@ export class Board {
       arrow.escapeProgress = 0;
       arrow.isColliding = false;
       arrow.isHighlighted = false;
+      soundManager.endScrape(arrow.id);
 
       soundManager.playTap();
       soundManager.resetCombo();

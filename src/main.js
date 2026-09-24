@@ -54,6 +54,7 @@ class GameApp {
     this.particles = new ParticleSystem();
     this.renderer = new Renderer(this.canvas, this.particles);
     this.board = new Board(this.particles);
+    this.board.exitClearance = (arrow) => this.renderer.exitClearanceCells(arrow);
     this.input = new InputManager(this.canvas, this.board, this.renderer, this.particles);
 
     // Setup callbacks
@@ -75,11 +76,8 @@ class GameApp {
     // Initialize UI
     this.initUI();
 
-    // Native splash is already hidden by the inline first-paint script.
-    // Retry once in case the bridge was not ready yet.
-    try {
-      SplashScreen.hide({ fadeOutDuration: 80 });
-    } catch (_) {}
+    // Keep the native logo up until this page has actually painted the same logo.
+    this.hideNativeSplashWhenLogoIsVisible();
 
     // Initialize Services: AdMob & Auto-Update Check
     try {
@@ -94,6 +92,22 @@ class GameApp {
     this.lastTime = performance.now();
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
+  }
+
+  hideNativeSplashWhenLogoIsVisible() {
+    const logo = document.getElementById('boot-logo');
+    const hide = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          try { SplashScreen.hide({ fadeOutDuration: 180 }); } catch (_) {}
+        });
+      });
+    };
+    if (!logo || (logo.complete && logo.naturalWidth > 0)) hide();
+    else {
+      logo.addEventListener('load', hide, { once: true });
+      logo.addEventListener('error', hide, { once: true });
+    }
   }
 
   triggerSplashAnimation() {

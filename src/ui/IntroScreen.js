@@ -49,7 +49,7 @@ export class IntroScreen {
         <header class="intro-top-header">
           <div class="header-brand">
             <div class="brand-mark">
-              <img src="/icon-512.png" alt="" />
+              <img src="/logo-mark.png" alt="" />
             </div>
             <div class="brand-lockup">
               <span class="brand-kicker">PUZZLE</span>

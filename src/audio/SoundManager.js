@@ -235,63 +235,61 @@ class SoundManager {
     });
   }
 
-  beginScrape(id = 'move') {
+  beginScrape(id = 'move', seconds = 0.7) {
     if (!this.sfxEnabled) return;
     this.initContext();
     if (!this.ctx) return;
     this.endScrape(id);
     const ctx = this.ctx;
-    const length = Math.max(1, Math.floor(ctx.sampleRate * 0.32));
+    const dur = Math.max(0.22, Math.min(3.6, Number(seconds) || 0.7));
+    const length = Math.max(1, Math.floor(ctx.sampleRate * dur));
     const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     let grit = 0;
+    const attack = Math.min(0.03, dur * 0.1);
+    const release = Math.min(0.06, dur * 0.14);
     for (let i = 0; i < length; i += 1) {
+      const t = i / ctx.sampleRate;
       const white = Math.random() * 2 - 1;
-      grit = grit * 0.74 + white * 0.26;
-      data[i] = grit * (0.65 + 0.35 * Math.sin((i / length) * Math.PI * 2));
+      grit = grit * 0.78 + white * 0.22;
+      let env = 1;
+      if (t < attack) env = t / attack;
+      else if (t > dur - release) env = Math.max(0, (dur - t) / release);
+      data[i] = grit * env;
     }
     const src = ctx.createBufferSource();
     src.buffer = buffer;
-    src.loop = true;
+    src.loop = false;
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.Q.value = 0.72;
-    filter.frequency.value = 860;
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.value = 5.5 + Math.random() * 2.5;
-    lfoGain.gain.value = 220;
-    lfo.connect(lfoGain);
-    lfoGain.connect(filter.frequency);
+    filter.frequency.value = 820;
+    filter.Q.value = 0.65;
     const gain = ctx.createGain();
-    const now = ctx.currentTime;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.012, this.sfxVolume * 0.2), now + 0.06);
+    gain.gain.value = Math.max(0.01, this.sfxVolume * 0.16);
     src.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-    src.start(now);
-    lfo.start(now);
+    const now = ctx.currentTime;
+    try { src.start(now); } catch (_) { return; }
+    try { src.stop(now + dur); } catch (_) {}
     if (!this.scrapes) this.scrapes = new Map();
-    this.scrapes.set(id, { src, gain, lfo });
+    const token = {};
+    this.scrapes.set(id, { src, gain, filter, token });
+    setTimeout(() => {
+      const cur = this.scrapes?.get(id);
+      if (cur && cur.token === token) this.endScrape(id);
+    }, Math.ceil(dur * 1000) + 80);
   }
 
   endScrape(id = 'move') {
     const item = this.scrapes?.get(id);
-    if (!item || !this.ctx) {
-      this.scrapes?.delete(id);
-      return;
-    }
-    const now = this.ctx.currentTime;
-    try {
-      item.gain.gain.cancelScheduledValues(now);
-      item.gain.gain.setValueAtTime(Math.max(0.0001, item.gain.gain.value), now);
-      item.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
-    } catch (_) {}
-    const stopAt = now + 0.13;
-    try { item.src.stop(stopAt); } catch (_) {}
-    try { item.lfo.stop(stopAt); } catch (_) {}
-    this.scrapes.delete(id);
+    this.scrapes?.delete(id);
+    if (!item) return;
+    try { item.gain.gain.setValueAtTime(0, this.ctx?.currentTime || 0); } catch (_) {}
+    try { item.gain.disconnect(); } catch (_) {}
+    try { item.filter.disconnect(); } catch (_) {}
+    try { item.src.stop(); } catch (_) {}
+    try { item.src.disconnect(); } catch (_) {}
   }
 
   stopAllScrapes() {

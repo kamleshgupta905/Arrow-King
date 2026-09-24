@@ -14,6 +14,21 @@ body.studio #app {
   background: #F7F9FC;
 }
 
+.boot-splash .logo-stage,
+.boot-logo {
+  width: 168px;
+  height: 168px;
+  opacity: 1;
+  background: transparent;
+  box-shadow: none;
+  filter: none;
+}
+
+.boot-logo {
+  display: block;
+  object-fit: contain;
+}
+
 .logo-stage {
   width: 148px;
   height: 148px;
@@ -142,6 +157,18 @@ body.studio .brand-mark,
 body.studio .brand-mark img {
   animation: none !important;
   transform: none !important;
+}
+
+body.studio .brand-mark,
+body.studio .brand-mark img {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  outline: none !important;
 }
 
 body.studio .intro-top-header,

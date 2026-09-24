@@ -9,6 +9,77 @@
 
 import { getLevelTheme, drawLevelBackground, drawShapeBoardBackdrop } from './LevelThemes.js';
 
+export function arrowBodyLength(points) {
+  let length = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    length += Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+  }
+  return length;
+}
+
+/** Head leads, tail follows. Path length stays equal to the resting arrow. */
+export function slitherPath(points, dir, forwardDist) {
+  const dx = dir === 'RIGHT' ? 1 : dir === 'LEFT' ? -1 : 0;
+  const dy = dir === 'DOWN' ? 1 : dir === 'UP' ? -1 : 0;
+  const segLengths = [];
+  let bodyLength = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const d = Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+    segLengths.push(d);
+    bodyLength += d;
+  }
+
+  const s = Math.max(0, forwardDist);
+  const head = points[points.length - 1];
+  const newHead = { x: head.x + dx * s, y: head.y + dy * s };
+
+  if (s >= bodyLength) {
+    const tailDist = s - bodyLength;
+    return {
+      points: [
+        { x: head.x + dx * tailDist, y: head.y + dy * tailDist },
+        newHead
+      ],
+      head: newHead,
+      bodyLength
+    };
+  }
+
+  let accum = 0;
+  let segIdx = 0;
+  while (segIdx < segLengths.length && accum + segLengths[segIdx] <= s) {
+    accum += segLengths[segIdx];
+    segIdx++;
+  }
+  const segLen = segLengths[segIdx] || 1;
+  const t = (s - accum) / segLen;
+  const p1 = points[segIdx];
+  const p2 = points[segIdx + 1] || p1;
+  const currentPoints = [{
+    x: p1.x + (p2.x - p1.x) * t,
+    y: p1.y + (p2.y - p1.y) * t
+  }];
+  for (let i = segIdx + 1; i < points.length; i++) {
+    currentPoints.push({ x: points[i].x, y: points[i].y });
+  }
+  currentPoints.push(newHead);
+  return { points: currentPoints, head: newHead, bodyLength };
+}
+
+/** Cells the tail must still travel after reaching the original head, so it clears the screen. */
+export function clearanceCells(view, head, dir) {
+  const cell = view.cellSize || 0;
+  if (!view.width || !view.height || cell < 4) return null;
+  const sx = view.offsetX + head.x * cell;
+  const sy = view.offsetY + head.y * cell;
+  let px = view.width;
+  if (dir === 'RIGHT') px = view.width - sx;
+  else if (dir === 'LEFT') px = sx;
+  else if (dir === 'DOWN') px = view.height - sy;
+  else px = sy;
+  return Math.max(1.2, px / cell) + 1.8;
+}
+
 export class Renderer {
   constructor(canvas, particleSystem) {
     this.canvas = canvas;
@@ -497,66 +568,18 @@ export class Renderer {
    * Moves the head forward while pulling the body/tail along the sharp turns.
    */
   getSlitheringPath(arrow, board, forwardDist) {
-    const points = arrow.points;
-    const dir = arrow.dir;
-    const dx = dir === 'RIGHT' ? 1 : dir === 'LEFT' ? -1 : 0;
-    const dy = dir === 'DOWN' ? 1 : dir === 'UP' ? -1 : 0;
+    return slitherPath(arrow.points, arrow.dir, forwardDist);
+  }
 
-    const segLengths = [];
-    let bodyLength = 0;
-    for (let i = 0; i < points.length - 1; i++) {
-      const d = Math.hypot(points[i+1].x - points[i].x, points[i+1].y - points[i].y);
-      segLengths.push(d);
-      bodyLength += d;
-    }
-
-    const s = Math.max(0, forwardDist);
-    const head = points[points.length - 1];
-    const newHead = {
-      x: head.x + dx * s,
-      y: head.y + dy * s
-    };
-
-    if (s >= bodyLength) {
-      const tailDist = s - bodyLength;
-      const newTail = {
-        x: head.x + dx * tailDist,
-        y: head.y + dy * tailDist
-      };
-      return {
-        points: [newTail, newHead],
-        head: newHead
-      };
-    }
-
-    let accum = 0;
-    let segIdx = 0;
-    while (segIdx < segLengths.length && accum + segLengths[segIdx] <= s) {
-      accum += segLengths[segIdx];
-      segIdx++;
-    }
-
-    const rem = s - accum;
-    const segLen = segLengths[segIdx] || 1;
-    const t = rem / segLen;
-
-    const p1 = points[segIdx];
-    const p2 = points[segIdx + 1];
-    const currentTail = {
-      x: p1.x + (p2.x - p1.x) * t,
-      y: p1.y + (p2.y - p1.y) * t
-    };
-
-    const currentPoints = [currentTail];
-    for (let i = segIdx + 1; i < points.length; i++) {
-      currentPoints.push({ x: points[i].x, y: points[i].y });
-    }
-    currentPoints.push(newHead);
-
-    return {
-      points: currentPoints,
-      head: newHead
-    };
+  exitClearanceCells(arrow) {
+    const head = arrow.points[arrow.points.length - 1];
+    return clearanceCells({
+      width: this.width,
+      height: this.height,
+      offsetX: this.offsetX,
+      offsetY: this.offsetY,
+      cellSize: this.cellSize
+    }, head, arrow.dir);
   }
 
   /**
@@ -602,13 +625,12 @@ export class Renderer {
         }
         const totalDist = arrow.escapeTravel || (bodyLength + totalExitDist);
         const p = Math.max(0, Math.min(1, arrow.escapeProgress));
-        const glide = p * 0.82 + (p * p * (3 - 2 * p)) * 0.18;
-        const forwardDist = glide * totalDist;
+        const forwardDist = p * totalDist;
 
         const slither = this.getSlitheringPath(arrow, board, forwardDist);
         gridPoints = slither.points;
         gridHead = slither.head;
-        opacity = p < 0.97 ? 1 : Math.max(0, (1 - p) / 0.03);
+        opacity = 1;
       } else if (arrow.isColliding) {
         const p = arrow.collisionProgress;
         let forwardDist = 0;
