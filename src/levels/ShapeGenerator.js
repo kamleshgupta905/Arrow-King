@@ -27,12 +27,12 @@ export const SNAKE_PALETTES = [
 ];
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 3, minArrows: 8, maxArrows: 18 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.08, maxTurns: 4, minArrows: 10, maxArrows: 22 },
-  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.12, maxTurns: 4, minArrows: 12, maxArrows: 26 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.16, maxTurns: 4, minArrows: 12, maxArrows: 28 },
-  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.18, maxTurns: 4, minArrows: 14, maxArrows: 30 },
-  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.18, maxTurns: 4, minArrows: 14, maxArrows: 30, isTimed: true }
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 4, minArrows: 12, maxArrows: 36 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.08, maxTurns: 4, minArrows: 16, maxArrows: 44 },
+  { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.12, maxTurns: 4, minArrows: 18, maxArrows: 52 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.16, maxTurns: 4, minArrows: 18, maxArrows: 52 },
+  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.18, maxTurns: 4, minArrows: 20, maxArrows: 56 },
+  { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.18, maxTurns: 4, minArrows: 20, maxArrows: 56, isTimed: true }
 ];
 
 export const SHAPES_LIST = [
@@ -1561,7 +1561,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
 
   let width = Math.round(baseShape.width * totalScale);
   let height = Math.round(baseShape.height * totalScale);
-  const maxDim = 20;
+  const maxDim = 28;
   const dim = Math.max(width, height);
   if (dim > maxDim) {
     const k = maxDim / dim;
@@ -1595,7 +1595,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   } else {
     const minA = catDef.minArrows || 8;
     const maxA = catDef.maxArrows || 24;
-    targetArrows = Math.max(minA, Math.min(maxA, Math.round(shapeArea / 6.2)));
+    targetArrows = Math.max(minA, Math.min(maxA, Math.round(shapeArea / 5.2)));
   }
 
   const gridPts = new Uint8Array(width * height);
@@ -1803,7 +1803,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   // Second pass: chunky 3-5 cell arrows fill the silhouette without shrinking to stubs.
   availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
   let fillTries = 0;
-  const fillGoal = Math.round(shapeArea * 0.86);
+  const fillGoal = Math.round(shapeArea * 0.92);
   while (fillTries < 5000 && covered < fillGoal && availablePoints.length > 2) {
     fillTries++;
     if (fillTries % 10 === 0) {

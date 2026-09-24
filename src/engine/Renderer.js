@@ -290,8 +290,8 @@ export class Renderer {
 
   drawDotGrid(ctx, board, theme) {
     ctx.save();
-    const dotRadius = Math.max(0.8, this.cellSize * 0.035);
-    ctx.fillStyle = '#E5E7EB';
+    const dotRadius = Math.max(1.45, this.cellSize * 0.085);
+    ctx.fillStyle = '#B7C2CE';
 
     for (const p of (board.shapePoints || [])) {
       const pos = this.gridToScreen(p.x, p.y);
@@ -563,9 +563,9 @@ export class Renderer {
     ctx.save();
 
     // High visibility line width that scales with cell size
-    const lineWidth = Math.max(7.2, Math.min(this.cellSize * 0.5, 16));
-    const headLength = lineWidth * 1.12;
-    const headWidth = lineWidth * 1.42;
+    const lineWidth = Math.max(2.5, Math.min(this.cellSize * 0.28, 5.6));
+    const headLength = lineWidth * 1.55;
+    const headWidth = lineWidth * 1.72;
 
     for (const arrow of board.arrows) {
       if (arrow.isEscaped) continue;
@@ -596,7 +596,8 @@ export class Renderer {
         }
         const totalDist = arrow.escapeTravel || (bodyLength + totalExitDist);
         const p = Math.max(0, Math.min(1, arrow.escapeProgress));
-        const forwardDist = p * totalDist;
+        const glide = p * 0.82 + (p * p * (3 - 2 * p)) * 0.18;
+        const forwardDist = glide * totalDist;
 
         const slither = this.getSlitheringPath(arrow, board, forwardDist);
         gridPoints = slither.points;

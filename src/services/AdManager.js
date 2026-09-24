@@ -203,22 +203,30 @@ export class AdManager {
    * Web builds show a visible house ad so the tap is never silent.
    */
   async showHintAd(onReward) {
-    if (this.isNative && this.isInitialized) {
-      try {
-        const shown = await this.showRewardedAd(() => {
-          if (onReward) onReward();
-        }, () => {});
-        if (shown) return true;
-      } catch (_) {}
-      try {
-        await AdMob.showInterstitial();
-        this.prepareInterstitial();
-        if (onReward) onReward();
-        return true;
-      } catch (_) {}
+    if (this.hintBusy) return false;
+    this.hintBusy = true;
+    let granted = false;
+    const grant = () => {
+      if (granted) return;
+      granted = true;
+      try { if (onReward) onReward(); } catch (_) {}
+    };
+    const release = () => { this.hintBusy = false; };
+    try {
+      if (this.isNative && this.isInitialized) {
+        let presented = false;
+        try {
+          presented = await this.showRewardedAd(grant, () => {});
+        } catch (_) {
+          presented = false;
+        }
+        if (presented) return true;
+      }
+      this.showHouseAd(grant);
+      return true;
+    } finally {
+      setTimeout(release, 700);
     }
-    this.showHouseAd(onReward);
-    return true;
   }
 
   showHouseAd(onReward) {

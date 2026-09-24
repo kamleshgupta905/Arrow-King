@@ -241,10 +241,9 @@ export class Board {
       }
       const exitLen = Math.max(8, Math.min(this.width, this.height) * 0.72);
       arrow.escapeTravel = bodyLength + exitLen;
-      arrow.escapeDuration = Math.min(2.15, Math.max(0.92, arrow.escapeTravel / 13));
+      arrow.escapeDuration = Math.min(1.65, Math.max(0.58, arrow.escapeTravel / 16));
 
-      soundManager.playSlide();
-      soundManager.playLockIn();
+      soundManager.playScrape(arrow.escapeDuration * 0.92);
 
       // Record for Undo
       this.moveHistory.push({ arrowId: arrow.id });
@@ -273,6 +272,7 @@ export class Board {
       arrow.isHighlighted = true;
       arrow.blockerId = result.blocker ? result.blocker.id : null;
 
+      soundManager.playScrape(0.32);
       soundManager.playStarLoss();
 
       return false;

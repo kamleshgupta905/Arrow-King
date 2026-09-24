@@ -235,6 +235,42 @@ class SoundManager {
     });
   }
 
+  playScrape(seconds = 0.55) {
+    if (!this.sfxEnabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const dur = Math.max(0.26, Math.min(1.45, seconds));
+    const length = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let grit = 0;
+    for (let i = 0; i < length; i += 1) {
+      const white = Math.random() * 2 - 1;
+      grit = grit * 0.86 + white * 0.14;
+      const n = i / length;
+      const env = Math.sin(Math.PI * Math.min(1, n / 0.08)) * (1 - n * 0.35);
+      data[i] = grit * env;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 0.85;
+    const now = ctx.currentTime;
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(520, now + dur);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.02, this.sfxVolume * 0.55), now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+  }
+
   playSlide() {
     if (!this.sfxEnabled) return;
     this.initContext();
@@ -472,11 +508,13 @@ class SoundManager {
     this.harpGain = this.ctx.createGain();
     this.scoreGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
     this.harpGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
-    this.scoreGain.gain.exponentialRampToValueAtTime(1, this.ctx.currentTime + 0.9);
+    const bed = (this.musicMode === 'game' || this.musicMode === 'rush') ? 0.34 : 1;
+    this.scoreGain.gain.exponentialRampToValueAtTime(bed, this.ctx.currentTime + 0.9);
     this.harpGain.gain.exponentialRampToValueAtTime(1, this.ctx.currentTime + 0.7);
     this.scoreGain.connect(this.padFilter);
     this.harpGain.connect(this.musicBus);
     this.startAir(this.scoreGain);
+    if (this.musicMode === 'game' || this.musicMode === 'rush') this.startFluteBed(gen);
 
     this.step = 0;
     this.nextNoteTime = this.ctx.currentTime + 0.12;
@@ -602,6 +640,20 @@ class SoundManager {
     }, 700);
   }
 
+  startFluteBed(gen) {
+    if (!this.ctx) return;
+    const notes = [349.23, 392.0, 440.0, 392.0, 329.63, 293.66, 329.63, 392.0, 440.0, 523.25, 440.0, 392.0];
+    const loop = (index) => {
+      if (gen !== this.musicGen || !this.isMusicPlaying || !this.musicEnabled) return;
+      const now = this.ctx.currentTime;
+      const freq = notes[index % notes.length] * (this.voiceShift || 1);
+      this.voice(freq, now, 0.62, 0.045, this.harpGain);
+      this.voice(freq * 2, now + 0.01, 0.38, 0.012, this.harpGain);
+      this.fluteTimer = setTimeout(() => loop(index + 1), 720);
+    };
+    loop(0);
+  }
+
   stopMusic() {
     this.isMusicPlaying = false;
     try { window.speechSynthesis?.cancel(); } catch (_) {}
@@ -609,6 +661,10 @@ class SoundManager {
     if (this.ambientTimer) {
       clearTimeout(this.ambientTimer);
       this.ambientTimer = null;
+    }
+    if (this.fluteTimer) {
+      clearTimeout(this.fluteTimer);
+      this.fluteTimer = null;
     }
     this.fadeNode(this.scoreGain);
     this.fadeNode(this.harpGain);
