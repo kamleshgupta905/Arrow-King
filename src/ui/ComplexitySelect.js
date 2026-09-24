@@ -193,11 +193,11 @@ export class ComplexitySelect {
             const currentUnlocked = lockInfo.isLocked ? 0 : Math.min(totalLevels, unlockedMap[cat.id] || 1);
             const progressPercent = lockInfo.isLocked ? 0 : Math.min(100, Math.round(((currentUnlocked - 1) / totalLevels) * 100));
             return `
-              <div class="mode-row ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'}" data-cat="${cat.id}">
+              <div class="mode-row ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'} ${cat.id === recommendedId ? 'is-recommended' : ''}" data-cat="${cat.id}">
                 <div class="mode-ico" style="background:${meta.accent}">${meta.svgIcon}</div>
                 <div class="mode-copy">
                   <div class="mode-name-row">
-                    <h2>${cat.name}</h2>
+                    <h2>${cat.name}${cat.id === recommendedId && !lockInfo.isLocked ? ' · Continue' : ''}</h2>
                     <span>${lockInfo.isLocked ? 'Locked' : totalLevels + ' levels'}</span>
                   </div>
                   <p>${meta.tagline}</p>

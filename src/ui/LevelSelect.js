@@ -277,15 +277,7 @@ export class LevelSelect {
     const offsetX = (w - boardW * cellSize) / 2;
     const offsetY = (h - boardH * cellSize) / 2;
 
-    const shapePts = levelData.shapePoints || [];
-    ctx.fillStyle = '#E7EEF8';
-    for (const p of shapePts) {
-      const s = cellSize * 0.92;
-      ctx.fillRect(offsetX + p.x * cellSize - s / 2, offsetY + p.y * cellSize - s / 2, s, s);
-    }
-
-    // Draw subtle grid dots
-    ctx.fillStyle = '#9AA8BC';
+    ctx.fillStyle = '#E5E7EB';
     for (let y = 1; y < boardH; y += 2) {
       for (let x = 1; x < boardW; x += 2) {
         ctx.beginPath();
@@ -302,7 +294,7 @@ export class LevelSelect {
 
     for (const arrow of levelData.arrows) {
       if (arrow.points.length >= 2) {
-        const col = arrow.color || (this.activeCategory === 'hacker' ? '#0f172a' : '#1e293b');
+        const col = '#111827';
         ctx.strokeStyle = col;
         ctx.fillStyle = col;
 

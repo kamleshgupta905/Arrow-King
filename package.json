@@ -3,7 +3,7 @@
   "displayName": "Arrow King",
   "description": "Arrow King Premiere — 600 vector courts, royal score, phone auto-update",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

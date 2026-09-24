@@ -8,10 +8,38 @@ body.studio #app {
 }
 
 .boot-splash {
-  gap: 8px;
+  gap: 10px;
   text-align: center;
   padding: 24px;
+  background: #F7F9FC;
 }
+
+.logo-stage {
+  width: 148px;
+  height: 148px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  animation: logoPop 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.logo-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 36px;
+  border: 2px solid #D7E2F5;
+  animation: ringPulse 1.6s ease-in-out infinite;
+}
+
+.logo-mark { width: 92px; height: 92px; fill: #1A2744; }
+.logo-arrow { transform-origin: 60px 70px; animation: arrowIn 0.7s ease both; }
+.logo-arrow.b { animation-delay: 0.12s; }
+.logo-arrow.c { animation-delay: 0.22s; }
+
+@keyframes logoPop { from { transform: scale(0.72); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ringPulse { 50% { transform: scale(1.04); } }
+@keyframes arrowIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 .boot-board {
   width: 168px;
@@ -49,10 +77,12 @@ body.studio #app {
 }
 
 .boot-mark {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  margin-top: 10px;
+  width: 108px;
+  height: 108px;
+  border-radius: 28px;
+  position: relative;
+  z-index: 1;
+  object-fit: cover;
 }
 
 .boot-title {
@@ -115,6 +145,23 @@ body.studio .apple-nav-header {
   background: #FFFFFF !important;
   border-bottom: 1px solid #E6EBF3 !important;
   box-shadow: none !important;
+}
+
+body.studio .brand-arrow,
+body.studio .title-arrow,
+body.studio .brand-king,
+body.studio .title-king,
+body.studio .brand-title,
+body.studio .hero-game-title,
+body.studio .hero-game-title span,
+body.studio .rank-chip,
+body.studio .rank-chip strong,
+body.studio .jewel b,
+body.studio .jewel span {
+  color: #1A2744 !important;
+  -webkit-text-fill-color: #1A2744 !important;
+  background: none !important;
+  opacity: 1 !important;
 }
 
 body.studio .brand-title,
@@ -404,7 +451,7 @@ body.studio .modal-backdrop {
 
 body.studio #intro-particles-canvas,
 body.studio #game-canvas {
-  background: #F4F6FA !important;
+  background: #FFFFFF !important;
   background-image: none !important;
 }
 
@@ -477,20 +524,25 @@ body.studio .hud-paths-badge { display: none !important; }
 .mode-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   background: #FFFFFF;
   border: 1px solid #E3E8F0;
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(26, 39, 68, 0.04);
+}
+
+.mode-row.is-recommended {
+  border-color: #1A2744;
 }
 
 .mode-row.is-locked { opacity: 0.62; }
 .mode-row.is-unlocked { cursor: pointer; }
 
 .mode-ico {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
   flex: none;

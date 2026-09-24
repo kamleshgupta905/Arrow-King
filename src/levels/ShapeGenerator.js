@@ -27,11 +27,11 @@ export const SNAKE_PALETTES = [
 ];
 
 export const CATEGORIES = [
-  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 2, minArrows: 14, maxArrows: 30 },
-  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.15, maxTurns: 3, minArrows: 24, maxArrows: 50 },
+  { id: 'beginner', name: 'Beginner', levelsCount: 100, scale: 1.0, maxTurns: 3, minArrows: 36, maxArrows: 90 },
+  { id: 'intermediate', name: 'Intermediate', levelsCount: 100, scale: 1.15, maxTurns: 3, minArrows: 48, maxArrows: 120 },
   { id: 'advanced', name: 'Advanced', levelsCount: 100, scale: 1.65, maxTurns: 3, minArrows: 800, maxArrows: 850 },
-  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.25, maxTurns: 4, minArrows: 36, maxArrows: 65 },
-  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.35, maxTurns: 4, minArrows: 45, maxArrows: 75 },
+  { id: 'expert', name: 'Expert', levelsCount: 100, scale: 1.25, maxTurns: 4, minArrows: 60, maxArrows: 140 },
+  { id: 'master', name: 'Master', levelsCount: 100, scale: 1.35, maxTurns: 4, minArrows: 70, maxArrows: 160 },
   { id: 'hacker', name: 'Hacker', levelsCount: 100, scale: 1.65, maxTurns: 3, minArrows: 800, maxArrows: 850, isTimed: true }
 ];
 
@@ -1580,13 +1580,15 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
   // Exactly as many arrows as required for this shape level-by-level:
   const shapeArea = inShape.length;
   let targetArrows;
-  if (catDef.minArrows && catDef.maxArrows) {
+  if (isGiant && catDef.minArrows && catDef.maxArrows) {
     const minA = catDef.minArrows;
     const maxA = catDef.maxArrows;
     const scaledTarget = Math.round(minA + ((num - 1) / 99) * (maxA - minA));
-    targetArrows = Math.min(scaledTarget, Math.max(12, Math.round(shapeArea * 0.60)));
+    targetArrows = Math.min(scaledTarget, Math.max(12, Math.round(shapeArea * 0.45)));
   } else {
-    targetArrows = Math.max(12, Math.min(48, Math.round((shapeArea * 0.68) / 3.4)));
+    const minA = catDef.minArrows || 24;
+    const maxA = catDef.maxArrows || 120;
+    targetArrows = Math.max(minA, Math.min(maxA, Math.round(shapeArea * 0.42)));
   }
 
   const gridPts = new Uint8Array(width * height);
@@ -1602,12 +1604,26 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     ? (rng() < 0.65 ? 1 : 2)
     : (num % 2 === 0 ? 3 : 2);
 
-  const maxAttempts = isGiant ? 35000 : 18000;
+  const maxAttempts = isGiant ? 35000 : 90000;
   let attempts = 0;
+  let covered = 0;
+  const coverGoal = isGiant ? shapeArea : Math.round(shapeArea * 0.8);
 
-  while (attempts < maxAttempts && availablePoints.length > 3 && orderedArrows.length < targetArrows) {
+  while (attempts < maxAttempts && availablePoints.length > 3 && orderedArrows.length < targetArrows && covered < coverGoal) {
     attempts++;
-    const startPt = availablePoints[Math.floor(rng() * availablePoints.length)];
+    let startPt = availablePoints[Math.floor(rng() * availablePoints.length)];
+    if (!isGiant && attempts < 2500 && rng() < 0.45) {
+      const edge = availablePoints.filter((p) => (
+        !gridPts[p.y * width + p.x]
+        && (
+          !mask(p.x + 1, p.y, width, height)
+          || !mask(p.x - 1, p.y, width, height)
+          || !mask(p.x, p.y + 1, width, height)
+          || !mask(p.x, p.y - 1, width, height)
+        )
+      ));
+      if (edge.length) startPt = edge[Math.floor(rng() * edge.length)];
+    }
     if (gridPts[startPt.y * width + startPt.x]) continue;
 
     const path = [{ x: startPt.x, y: startPt.y }];
@@ -1648,7 +1664,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
         lastTurnRot = getTurnDirection(lastDir, chosenDir);
       }
 
-      const runLength = veryCrowded ? 1 : (crowded ? (1 + Math.floor(rng() * 2)) : (1 + Math.floor(rng() * 3)));
+      const fillingGaps = attempts > 3500;
+      const runLength = (veryCrowded || fillingGaps) ? (1 + Math.floor(rng() * 2)) : (crowded ? (2 + Math.floor(rng() * 3)) : (3 + Math.floor(rng() * 5)));
       for (let s = 0; s < runLength; s++) {
         const nx = curPt.x + chosenDir.dx;
         const ny = curPt.y + chosenDir.dy;
@@ -1755,6 +1772,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     const maxRayDist = Math.max(width, height);
     let step = 0;
     while (step < maxRayDist && rx >= 0 && rx < width && ry >= 0 && ry < height) {
+      if (gridPts[ry * width + rx] || !mask(rx, ry, width, height)) break;
       rayGrid[ry * width + rx] = 1;
       rx += chosenDir.dx;
       ry += chosenDir.dy;
@@ -1762,7 +1780,8 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
 
     orderedArrows.push(arrow);
-    if (attempts % 15 === 0) {
+    covered += chosenPath.length;
+    if (attempts % 8 === 0) {
       availablePoints = availablePoints.filter(p => !gridPts[p.y * width + p.x]);
     }
   }

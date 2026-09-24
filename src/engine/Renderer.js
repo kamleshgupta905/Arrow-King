@@ -185,7 +185,7 @@ export class Renderer {
     const lvlNum = board.level.levelNumber || 1;
     const theme = getLevelTheme(cat, lvlNum);
 
-    ctx.fillStyle = '#F4F6FA';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, this.width, this.height);
 
     this.updateTransforms(board.width, board.height);
@@ -209,7 +209,6 @@ export class Renderer {
       ctx.translate(-centerX, -centerY);
     }
 
-    this.drawShapeFill(ctx, board);
     this.drawDotGrid(ctx, board, theme);
 
     // 4. Render all active and animating arrows
@@ -291,8 +290,8 @@ export class Renderer {
 
   drawDotGrid(ctx, board, theme) {
     ctx.save();
-    const dotRadius = Math.max(1.3, this.cellSize * 0.07);
-    ctx.fillStyle = '#9AA8BC';
+    const dotRadius = Math.max(0.8, this.cellSize * 0.035);
+    ctx.fillStyle = '#E5E7EB';
 
     for (const p of (board.shapePoints || [])) {
       const pos = this.gridToScreen(p.x, p.y);
@@ -564,7 +563,7 @@ export class Renderer {
     ctx.save();
 
     // High visibility line width that scales with cell size
-    const lineWidth = Math.max(3.6, this.cellSize * 0.28);
+    const lineWidth = Math.max(4.2, this.cellSize * 0.36);
     const headLength = Math.max(9, this.cellSize * 0.52);
     const headWidth = Math.max(8, this.cellSize * 0.46);
 
@@ -640,7 +639,7 @@ export class Renderer {
       const tipX = headScreen.x + bumpOffsetX;
       const tipY = headScreen.y + bumpOffsetY;
 
-      let strokeColor = '#1A2744';
+      let strokeColor = '#111827';
       if (arrow.isColliding || arrow.isHighlighted) {
         strokeColor = '#DC2626';
       } else if (arrow.id === board.hintArrowId) {

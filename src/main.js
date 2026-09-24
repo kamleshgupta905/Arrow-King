@@ -100,7 +100,7 @@ class GameApp {
 
     const bar = document.getElementById('splash-progress-bar');
     const started = performance.now();
-    const duration = 1400;
+    const duration = 2200;
 
     const tick = (now) => {
       if (this.splashDismissed) return;
@@ -351,14 +351,15 @@ class GameApp {
     // Hide banner during puzzle to avoid accidental clicks and policy strikes
     try { adManager.hideBanner(); } catch (_) {}
 
-    soundManager.setMusicMode(this.currentCategory === 'hacker' ? 'rush' : 'game');
-    soundManager.startMusic();
-
     this.renderer.resize();
     this.renderer.resetZoom();
     this.renderer.startEntranceAnimation();
     const levelData = getLevel(this.currentCategory, this.currentLevelNum);
     this.board.loadLevel(levelData);
+
+    soundManager.setMusicMode(this.currentCategory === 'hacker' ? 'rush' : 'game');
+    soundManager.setLevelVoice(levelData.levelNumber, levelData.shapeName, this.currentCategory);
+    soundManager.startMusic();
 
     const theme = getLevelTheme(this.currentCategory, this.currentLevelNum);
     this.hud.updateLevelInfo(

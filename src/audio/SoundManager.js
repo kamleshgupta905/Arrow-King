@@ -23,10 +23,21 @@ class SoundManager {
     this.graphReady = false;
 
     this.progression = [
-      { root: 261.63, tones: [261.63, 329.63, 392.0, 493.88] }, // Cmaj7
-      { root: 329.63, tones: [329.63, 392.0, 493.88, 587.33] }, // Em7
-      { root: 220.0, tones: [220.0, 261.63, 329.63, 392.0] },   // Am7
-      { root: 174.61, tones: [174.61, 220.0, 261.63, 329.63] }  // Fmaj7
+      { root: 261.63, tones: [261.63, 329.63, 392.0, 493.88] },
+      { root: 329.63, tones: [329.63, 392.0, 493.88, 587.33] },
+      { root: 220.0, tones: [220.0, 261.63, 329.63, 392.0] },
+      { root: 174.61, tones: [174.61, 220.0, 261.63, 329.63] }
+    ];
+    this.voiceShift = 1;
+    this.levelVoices = [
+      [{ root: 196.0, tones: [196.0, 246.94, 293.66, 392.0] }, { root: 220.0, tones: [220.0, 277.18, 329.63, 440.0] }, { root: 174.61, tones: [174.61, 220.0, 261.63, 349.23] }, { root: 146.83, tones: [146.83, 196.0, 220.0, 293.66] }],
+      [{ root: 233.08, tones: [233.08, 293.66, 349.23, 466.16] }, { root: 196.0, tones: [196.0, 246.94, 311.13, 392.0] }, { root: 174.61, tones: [174.61, 233.08, 277.18, 349.23] }, { root: 155.56, tones: [155.56, 196.0, 233.08, 311.13] }],
+      [{ root: 261.63, tones: [261.63, 311.13, 392.0, 466.16] }, { root: 293.66, tones: [293.66, 349.23, 440.0, 523.25] }, { root: 196.0, tones: [196.0, 246.94, 293.66, 392.0] }, { root: 174.61, tones: [174.61, 220.0, 261.63, 349.23] }],
+      [{ root: 146.83, tones: [146.83, 185.0, 220.0, 293.66] }, { root: 164.81, tones: [164.81, 207.65, 246.94, 329.63] }, { root: 196.0, tones: [196.0, 246.94, 293.66, 392.0] }, { root: 130.81, tones: [130.81, 164.81, 196.0, 261.63] }],
+      [{ root: 220.0, tones: [220.0, 277.18, 329.63, 415.3] }, { root: 246.94, tones: [246.94, 311.13, 369.99, 493.88] }, { root: 185.0, tones: [185.0, 233.08, 277.18, 369.99] }, { root: 164.81, tones: [164.81, 207.65, 246.94, 329.63] }],
+      [{ root: 174.61, tones: [174.61, 220.0, 261.63, 349.23] }, { root: 196.0, tones: [196.0, 246.94, 293.66, 392.0] }, { root: 146.83, tones: [146.83, 196.0, 220.0, 293.66] }, { root: 130.81, tones: [130.81, 174.61, 196.0, 261.63] }],
+      [{ root: 277.18, tones: [277.18, 349.23, 415.3, 554.37] }, { root: 233.08, tones: [233.08, 293.66, 349.23, 466.16] }, { root: 196.0, tones: [196.0, 246.94, 311.13, 392.0] }, { root: 155.56, tones: [155.56, 196.0, 233.08, 311.13] }],
+      [{ root: 164.81, tones: [164.81, 207.65, 246.94, 329.63] }, { root: 185.0, tones: [185.0, 233.08, 277.18, 369.99] }, { root: 146.83, tones: [146.83, 185.0, 220.0, 293.66] }, { root: 123.47, tones: [123.47, 164.81, 185.0, 246.94] }]
     ];
 
     this.loadSettings();
@@ -408,6 +419,31 @@ class SoundManager {
 
   // --- SCORE ---
 
+  setLevelVoice(levelNumber = 1, shapeName = '', category = '') {
+    const seed = Math.abs((Number(levelNumber) * 31) + (String(category).charCodeAt(0) || 1) * 13) % this.levelVoices.length;
+    this.progression = this.levelVoices[seed];
+    this.tempo = [66, 74, 82, 90, 70, 78, 62, 86][seed];
+    this.voiceShift = 0.94 + ((Number(levelNumber) + seed) % 7) * 0.02;
+    if (this.isMusicPlaying) {
+      this.stopMusic();
+      this.startMusic();
+    }
+    this.speakLevel(shapeName, levelNumber, seed);
+  }
+
+  speakLevel(shapeName, levelNumber, seed) {
+    if (!this.musicEnabled || typeof window === 'undefined' || !window.speechSynthesis) return;
+    const label = String(shapeName || 'Shape').toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
+    const utterance = new SpeechSynthesisUtterance(`${label}. Level ${levelNumber}.`);
+    utterance.pitch = 0.82 + (seed % 5) * 0.07;
+    utterance.rate = 0.88 + (seed % 3) * 0.05;
+    utterance.volume = 0.85;
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) utterance.voice = voices[(seed + Number(levelNumber)) % voices.length];
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+
   setMusicMode(mode) {
     this.musicMode = mode || 'menu';
   }
@@ -495,15 +531,16 @@ class SoundManager {
 
   scheduleStep(step, time) {
     const chord = this.progression[Math.floor(step / 16) % this.progression.length];
+    const shift = this.voiceShift || 1;
     const local = step % 16;
     const level = this.musicVolume;
 
     if (local === 0) {
       chord.tones.forEach((freq) => {
-        this.voice(freq, time, eighthSpan(this.tempo, 17), level * 0.055, this.scoreGain);
+        this.voice(freq * shift, time, eighthSpan(this.tempo, 17), level * 0.055, this.scoreGain);
       });
       this.tone({
-        freq: chord.root / 2,
+        freq: (chord.root / 2) * shift,
         start: time,
         dur: 2.6,
         peak: level * 0.08,
@@ -532,7 +569,7 @@ class SoundManager {
     const harpOn = rush ? local % 2 === 0 : [0, 3, 6, 8, 11, 14].includes(local);
     if (harpOn) {
       const toneIndex = [0, 2, 1, 3, 2, 1, 0, 2][Math.floor(step / (rush ? 2 : 3)) % 8];
-      const freq = chord.tones[toneIndex % chord.tones.length] * (local % 8 === 0 ? 2 : 1);
+      const freq = chord.tones[toneIndex % chord.tones.length] * (local % 8 === 0 ? 2 : 1) * shift;
       this.tone({
         freq,
         start: time,
@@ -567,6 +604,7 @@ class SoundManager {
 
   stopMusic() {
     this.isMusicPlaying = false;
+    try { window.speechSynthesis?.cancel(); } catch (_) {}
     this.musicGen += 1;
     if (this.ambientTimer) {
       clearTimeout(this.ambientTimer);
