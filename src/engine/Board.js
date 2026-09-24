@@ -42,6 +42,7 @@ export class Board {
   }
 
   loadLevel(levelData) {
+    soundManager.stopAllScrapes();
     this.level = levelData;
     this.width = levelData.width || 18;
     this.height = levelData.height || 18;
@@ -127,7 +128,7 @@ export class Board {
     const dx = arrow.dir === 'RIGHT' ? 1 : arrow.dir === 'LEFT' ? -1 : 0;
     const dy = arrow.dir === 'DOWN' ? 1 : arrow.dir === 'UP' ? -1 : 0;
 
-    const activeArrows = this.arrows.filter(a => a.id !== arrow.id && !a.isEscaped);
+    const activeArrows = this.arrows.filter(a => a.id !== arrow.id && !a.isEscaped && !a.isEscaping);
 
     let nearestDist = Infinity;
     let nearestBlocker = null;
@@ -213,10 +214,6 @@ export class Board {
   tapArrow(arrowId) {
     if (this.isVictory || this.isRestarting) return false;
 
-    // Ignore tap if any arrow is currently escaping or colliding
-    const anyBusy = this.arrows.some(a => a.isEscaping || a.isColliding);
-    if (anyBusy) return false;
-
     const arrow = this.arrows.find(a => a.id === arrowId);
     if (!arrow || arrow.isEscaped || arrow.isEscaping || arrow.isColliding) {
       return false;
@@ -243,7 +240,7 @@ export class Board {
       arrow.escapeTravel = bodyLength + exitLen;
       arrow.escapeDuration = Math.min(1.65, Math.max(0.58, arrow.escapeTravel / 16));
 
-      soundManager.playScrape(arrow.escapeDuration * 0.92);
+      soundManager.beginScrape(arrow.id);
 
       // Record for Undo
       this.moveHistory.push({ arrowId: arrow.id });
@@ -272,7 +269,7 @@ export class Board {
       arrow.isHighlighted = true;
       arrow.blockerId = result.blocker ? result.blocker.id : null;
 
-      soundManager.playScrape(0.32);
+      soundManager.beginScrape(arrow.id);
       soundManager.playStarLoss();
 
       return false;
@@ -292,6 +289,7 @@ export class Board {
           arrow.escapeProgress = 1.0;
           arrow.isEscaping = false;
           arrow.isEscaped = true;
+          soundManager.endScrape(arrow.id);
           this.notifyRemaining();
           this.checkVictory();
         }

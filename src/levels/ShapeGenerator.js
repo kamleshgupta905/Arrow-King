@@ -1884,6 +1884,179 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     }
   }
 
+  const markCell = (x, y) => { gridPts[y * width + x] = 1; };
+  const markSeg = (a, b) => {
+    if (a.y === b.y) hSeg[a.y * width + Math.min(a.x, b.x)] = 1;
+    else vSeg[Math.min(a.y, b.y) * width + a.x] = 1;
+  };
+  const freeCell = (x, y) => mask(x, y, width, height) && !gridPts[y * width + x];
+
+  let grew = true;
+  let guard = 0;
+  while (grew && guard < 500) {
+    grew = false;
+    guard += 1;
+    for (const arrow of orderedArrows) {
+      const tail = arrow.points[0];
+      const prev = arrow.points[1];
+      const prefer = prev ? { dx: tail.x - prev.x, dy: tail.y - prev.y } : null;
+      const options = DIRS
+        .map((d) => ({ d, x: tail.x + d.dx, y: tail.y + d.dy }))
+        .filter((n) => freeCell(n.x, n.y) && !rayGrid[n.y * width + n.x]);
+      if (!options.length) continue;
+      options.sort((a, b) => {
+        const as = prefer && a.d.dx === prefer.dx && a.d.dy === prefer.dy ? 0 : 1;
+        const bs = prefer && b.d.dx === prefer.dx && b.d.dy === prefer.dy ? 0 : 1;
+        return as - bs;
+      });
+      const next = options[0];
+      arrow.points.unshift({ x: next.x, y: next.y });
+      arrow.tail = { x: next.x, y: next.y };
+      markCell(next.x, next.y);
+      markSeg(next, tail);
+      covered += 1;
+      grew = true;
+    }
+  }
+
+  const uncovered = () => {
+    const cells = [];
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (mask(x, y, width, height) && !gridPts[y * width + x]) cells.push({ x, y });
+      }
+    }
+    return cells;
+  };
+
+  let holes = uncovered();
+  let scans = 0;
+  while (holes.length && scans < 12) {
+    scans += 1;
+    let placedAny = false;
+    for (const start of holes) {
+    let placed = false;
+    for (const d of DIRS) {
+      const nx = start.x + d.dx;
+      const ny = start.y + d.dy;
+      if (!freeCell(nx, ny)) continue;
+      const path = [{ x: start.x, y: start.y }, { x: nx, y: ny }];
+      if (arrowHitsSelf(path, d.name)) continue;
+      const hit = getFirstHitArrow(nx, ny, d, orderedArrows);
+      if (!hit.arrow) continue;
+      const snap = { grid: gridPts.slice(), ray: rayGrid.slice(), h: hSeg.slice(), v: vSeg.slice() };
+      markCell(start.x, start.y);
+      markCell(nx, ny);
+      markSeg(start, path[1]);
+      orderedArrows.push({
+        id: `arrow_${orderedArrows.length + 1}`,
+        points: path,
+        head: { x: nx, y: ny },
+        tail: { ...start },
+        dir: d.name,
+        dirVec: d,
+        impactDist: hit.dist
+      });
+      if (!solveLevelStepByStep(orderedArrows).solved) {
+        orderedArrows.pop();
+        gridPts.set(snap.grid);
+        rayGrid.set(snap.ray);
+        hSeg.set(snap.h);
+        vSeg.set(snap.v);
+        continue;
+      }
+      covered += 2;
+      placed = true;
+      break;
+    }
+    if (!placed) {
+      const lonely = start;
+      for (const arrow of orderedArrows) {
+        const tail = arrow.points[0];
+        if (Math.abs(tail.x - lonely.x) + Math.abs(tail.y - lonely.y) !== 1) continue;
+        const snap = { grid: gridPts.slice(), points: arrow.points.map((p) => ({ ...p })) };
+        arrow.points.unshift({ ...lonely });
+        arrow.tail = { ...lonely };
+        markCell(lonely.x, lonely.y);
+        markSeg(lonely, tail);
+        if (!solveLevelStepByStep(orderedArrows).solved) {
+          arrow.points = snap.points;
+          arrow.tail = { ...snap.points[0] };
+          gridPts.set(snap.grid);
+          continue;
+        }
+        covered += 1;
+        placed = true;
+        break;
+      }
+    }
+      if (placed) placedAny = true;
+    }
+    holes = uncovered();
+    if (!placedAny) break;
+  }
+
+  const placeCover = (path, dir, impactDist) => {
+    const snap = { grid: gridPts.slice(), ray: rayGrid.slice(), h: hSeg.slice(), v: vSeg.slice() };
+    for (let i = 0; i < path.length; i++) {
+      markCell(path[i].x, path[i].y);
+      if (i > 0) markSeg(path[i - 1], path[i]);
+    }
+    orderedArrows.push({
+      id: `arrow_${orderedArrows.length + 1}`,
+      points: path.map((p) => ({ ...p })),
+      head: { ...path[path.length - 1] },
+      tail: { ...path[0] },
+      dir: dir.name,
+      dirVec: dir,
+      impactDist
+    });
+    if (!solveLevelStepByStep(orderedArrows).solved) {
+      orderedArrows.pop();
+      gridPts.set(snap.grid);
+      rayGrid.set(snap.ray);
+      hSeg.set(snap.h);
+      vSeg.set(snap.v);
+      return false;
+    }
+    covered += path.length;
+    return true;
+  };
+
+  let coverPasses = 0;
+  while (coverPasses < 6) {
+    coverPasses += 1;
+    const open = uncovered();
+    if (!open.length) break;
+    const openSet = new Set(open.map((p) => `${p.x},${p.y}`));
+    let placedCover = false;
+    for (const start of open) {
+      if (!openSet.has(`${start.x},${start.y}`)) continue;
+      for (const d of DIRS) {
+        const path = [{ ...start }];
+        let x = start.x + d.dx;
+        let y = start.y + d.dy;
+        while (openSet.has(`${x},${y}`)) {
+          path.push({ x, y });
+          x += d.dx;
+          y += d.dy;
+        }
+        if (path.length < 2) continue;
+        const head = path[path.length - 1];
+        const exits = !mask(head.x + d.dx, head.y + d.dy, width, height);
+        const hit = getFirstHitArrow(head.x, head.y, d, orderedArrows);
+        if (!exits && !hit.arrow) continue;
+        if (arrowHitsSelf(path, d.name)) continue;
+        if (placeCover(path, d, hit.arrow ? hit.dist : 999)) {
+          placedCover = true;
+          path.forEach((p) => openSet.delete(`${p.x},${p.y}`));
+          break;
+        }
+      }
+    }
+    if (!placedCover) break;
+  }
+
   // Assign 8-color snake palettes and uniform clean IDs (or custom shape zoned palette)
   for (let i = 0; i < orderedArrows.length; i++) {
     const a = orderedArrows[i];
@@ -1898,6 +2071,12 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
       a.color = pal.body;
     }
   }
+
+  const occupied = new Set();
+  for (const arrow of orderedArrows) {
+    for (const p of arrow.points) occupied.add(`${p.x},${p.y}`);
+  }
+  const filledShape = inShape.filter((p) => occupied.has(`${p.x},${p.y}`));
 
   // Calculate actual initial free count
   const initialFreeCount = orderedArrows.filter(a => canArrowEscape(a, orderedArrows)).length;
@@ -1915,7 +2094,7 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
     timeLimit,
     width,
     height,
-    shapePoints: inShape,
+    shapePoints: filledShape,
     initialFreeCount,
     parMoves: orderedArrows.length,
     arrows: orderedArrows
@@ -1925,4 +2104,3 @@ export function generateArrowMaze(category = 'beginner', levelNum = 1) {
 export function getCategoryDef(categoryId) {
   return CATEGORIES.find(c => c.id === categoryId) || CATEGORIES[0];
 }
-

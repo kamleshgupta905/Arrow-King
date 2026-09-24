@@ -235,40 +235,73 @@ class SoundManager {
     });
   }
 
-  playScrape(seconds = 0.55) {
+  beginScrape(id = 'move') {
     if (!this.sfxEnabled) return;
     this.initContext();
     if (!this.ctx) return;
+    this.endScrape(id);
     const ctx = this.ctx;
-    const dur = Math.max(0.26, Math.min(1.45, seconds));
-    const length = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const length = Math.max(1, Math.floor(ctx.sampleRate * 0.32));
     const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     let grit = 0;
     for (let i = 0; i < length; i += 1) {
       const white = Math.random() * 2 - 1;
-      grit = grit * 0.86 + white * 0.14;
-      const n = i / length;
-      const env = Math.sin(Math.PI * Math.min(1, n / 0.08)) * (1 - n * 0.35);
-      data[i] = grit * env;
+      grit = grit * 0.74 + white * 0.26;
+      data[i] = grit * (0.65 + 0.35 * Math.sin((i / length) * Math.PI * 2));
     }
     const src = ctx.createBufferSource();
     src.buffer = buffer;
+    src.loop = true;
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.Q.value = 0.85;
-    const now = ctx.currentTime;
-    filter.frequency.setValueAtTime(1400, now);
-    filter.frequency.exponentialRampToValueAtTime(520, now + dur);
+    filter.Q.value = 0.72;
+    filter.frequency.value = 860;
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 5.5 + Math.random() * 2.5;
+    lfoGain.gain.value = 220;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
     const gain = ctx.createGain();
+    const now = ctx.currentTime;
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.02, this.sfxVolume * 0.55), now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.012, this.sfxVolume * 0.2), now + 0.06);
     src.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
     src.start(now);
-    src.stop(now + dur + 0.02);
+    lfo.start(now);
+    if (!this.scrapes) this.scrapes = new Map();
+    this.scrapes.set(id, { src, gain, lfo });
+  }
+
+  endScrape(id = 'move') {
+    const item = this.scrapes?.get(id);
+    if (!item || !this.ctx) {
+      this.scrapes?.delete(id);
+      return;
+    }
+    const now = this.ctx.currentTime;
+    try {
+      item.gain.gain.cancelScheduledValues(now);
+      item.gain.gain.setValueAtTime(Math.max(0.0001, item.gain.gain.value), now);
+      item.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+    } catch (_) {}
+    const stopAt = now + 0.13;
+    try { item.src.stop(stopAt); } catch (_) {}
+    try { item.lfo.stop(stopAt); } catch (_) {}
+    this.scrapes.delete(id);
+  }
+
+  stopAllScrapes() {
+    if (!this.scrapes) return;
+    for (const id of [...this.scrapes.keys()]) this.endScrape(id);
+  }
+
+  playScrape(seconds = 0.55) {
+    this.beginScrape('once');
+    setTimeout(() => this.endScrape('once'), Math.max(180, seconds * 1000));
   }
 
   playSlide() {

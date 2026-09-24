@@ -7,8 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>Arrow King - Vector Arrow Puzzle Game</title>
-  <meta name="description" content="Arrow King: The ultimate vector arrow puzzle game. Escape handcrafted shape levels across categories without collisions, including fast-paced timed Hacker mode.">
+  <title>Arrow King – Arrow Puzzle Game</title>
+  <meta name="description" content="Arrow King is a free arrow puzzle game. Tap arrows, clear the maze, and reveal hearts, animals, and shapes. Offline puzzle levels for Android.">
+  <meta name="keywords" content="arrow puzzle, arrow escape game, tap arrows, maze puzzle, offline puzzle game, Arrow King">
 
   <!-- App PNG Icons & Manifest (No SVG) -->
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -27,19 +28,16 @@
     #splash-layer.fade-out { opacity: 0; pointer-events: none; transition: opacity .28s ease; }
     .logo-stage { width: 148px; height: 148px; position: relative; display: grid; place-items: center; }
     .logo-ring { position: absolute; inset: 8px; border-radius: 36px; border: 2px solid #D5DEEC; opacity: 0; }
-    .boot-mark-svg { width: 112px; height: 112px; opacity: 0; }
-    .boot-title { margin: 12px 0 0; font-size: 34px; line-height: 1; letter-spacing: -0.04em; font-weight: 760; color: #1A2744; opacity: 0; }
-    .boot-sub { margin: 8px 0 0; color: #64748B; font-size: 14px; opacity: 0; }
+    .boot-mark-svg { width: 112px; height: 112px; opacity: 1; }
+    .boot-title { margin: 12px 0 0; font-size: 34px; line-height: 1; letter-spacing: -0.04em; font-weight: 760; color: #1A2744; opacity: 1; }
+    .boot-sub { margin: 8px 0 0; color: #64748B; font-size: 14px; opacity: 1; }
     .boot-bar { width: 132px; height: 3px; background: #E3E8F0; border-radius: 99px; margin-top: 22px; overflow: hidden; }
     #splash-progress-bar { width: 0; height: 100%; background: #1A2744; }
-    #splash-layer.is-live .logo-ring { animation: ringIn .55s ease both, ringPulse 1.6s ease-in-out .55s infinite; }
-    #splash-layer.is-live .boot-mark-svg { animation: logoPop .58s cubic-bezier(.2,.85,.2,1) both; }
-    #splash-layer.is-live .boot-title { animation: rise .46s ease .12s both; }
-    #splash-layer.is-live .boot-sub { animation: rise .46s ease .22s both; }
-    @keyframes logoPop { from { transform: scale(.74); opacity: 0; } to { transform: none; opacity: 1; } }
-    @keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
-    @keyframes ringIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
-    @keyframes ringPulse { 50% { transform: scale(1.045); } }
+    #splash-layer.is-live .logo-ring { animation: ringIn .4s ease both, ringPulse 1.4s ease-in-out .4s infinite; }
+    #splash-layer.is-live .boot-mark-svg { animation: logoBreath .9s ease both; }
+    @keyframes logoBreath { 0% { transform: scale(1); } 45% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    @keyframes ringIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+    @keyframes ringPulse { 50% { transform: scale(1.035); } }
   </style>
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/premiere.css">
@@ -66,20 +64,19 @@
     <script>
       (function () {
         var tries = 0;
+        var splash = document.getElementById('splash-layer');
+        if (splash) {
+          splash.classList.add('is-live');
+          window.__akSplashAt = performance.now();
+        }
         function reveal() {
-          var splash = document.getElementById('splash-layer');
           var cap = window.Capacitor;
-          var ready = cap && cap.nativePromise;
-          tries += 1;
-          if (!ready && tries < 8) {
-            requestAnimationFrame(reveal);
+          if (cap && cap.nativePromise) {
+            cap.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 40 }).catch(function () {});
             return;
           }
-          if (splash && !splash.classList.contains('is-live')) {
-            splash.classList.add('is-live');
-            window.__akSplashAt = performance.now();
-          }
-          if (ready) cap.nativePromise('SplashScreen', 'hide', { fadeOutDuration: 60 }).catch(function () {});
+          tries += 1;
+          if (tries < 6) requestAnimationFrame(reveal);
         }
         requestAnimationFrame(reveal);
       })();

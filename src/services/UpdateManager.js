@@ -145,14 +145,12 @@ class UpdateManager {
         <div class="royal-update-actions">
           <button type="button" class="royal-update-later" id="royal-update-later">Later</button>
           <button type="button" class="royal-update-go" id="royal-update-go">Download APK</button>
-          <button type="button" class="royal-update-later" id="royal-update-browser">Open in browser</button>
         </div>
       </div>
     `;
     document.body.appendChild(sheet);
     sheet.querySelector('#royal-update-later')?.addEventListener('click', () => this.hideSheet());
     sheet.querySelector('#royal-update-go')?.addEventListener('click', () => this.beginUpdate());
-    sheet.querySelector('#royal-update-browser')?.addEventListener('click', () => this.openDirectDownload());
     this.sheet = sheet;
     return sheet;
   }
@@ -162,7 +160,8 @@ class UpdateManager {
     sheet.dataset.mode = 'update';
     sheet.querySelector('#royal-update-kicker').textContent = `v${this.currentVersion}  →  v${info.version || info.tag}`;
     sheet.querySelector('#royal-update-title').textContent = 'A new crown is ready';
-    sheet.querySelector('#royal-update-body').textContent = `${info.notes} If Android says the app already exists, uninstall Arrow King once, then install this file.`;
+    const notes = String(info.notes || '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+    sheet.querySelector('#royal-update-body').textContent = `${notes} If Android says the app already exists, uninstall Arrow King once, then install this file.`.trim();
     const go = sheet.querySelector('#royal-update-go');
     go.hidden = false;
     go.disabled = false;

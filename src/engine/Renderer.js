@@ -290,10 +290,16 @@ export class Renderer {
 
   drawDotGrid(ctx, board, theme) {
     ctx.save();
-    const dotRadius = Math.max(1.45, this.cellSize * 0.085);
-    ctx.fillStyle = '#B7C2CE';
+    const dotRadius = Math.max(1.35, this.cellSize * 0.07);
+    ctx.fillStyle = '#C5CED8';
+    const filled = new Set();
+    for (const arrow of (board.arrows || [])) {
+      if (arrow.isEscaped) continue;
+      for (const p of arrow.points) filled.add(`${p.x},${p.y}`);
+    }
 
     for (const p of (board.shapePoints || [])) {
+      if (filled.has(`${p.x},${p.y}`)) continue;
       const pos = this.gridToScreen(p.x, p.y);
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, dotRadius, 0, Math.PI * 2);

@@ -1,6 +1,7 @@
 {
   "short_name": "Arrow King",
-  "name": "Arrow King - Vector Puzzle Game",
+  "name": "Arrow King - Arrow Puzzle Game",
+  "description": "Tap arrows, clear the maze, and reveal the shape. Offline arrow puzzle game.",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -20,8 +21,8 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#07080e",
-  "theme_color": "#07080e",
+  "background_color": "#F7F9FC",
+  "theme_color": "#F7F9FC",
   "display": "standalone",
   "orientation": "portrait"
 }

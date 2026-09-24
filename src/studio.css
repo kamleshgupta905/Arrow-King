@@ -137,6 +137,14 @@ body.studio .modal-backdrop {
 }
 
 body.studio .intro-top-header,
+body.studio .header-brand,
+body.studio .brand-mark,
+body.studio .brand-mark img {
+  animation: none !important;
+  transform: none !important;
+}
+
+body.studio .intro-top-header,
 body.studio .premiere-nav,
 body.studio .level-select-header,
 body.studio .apple-nav-header {
@@ -184,12 +192,60 @@ body.studio .settings-version {
   color: #64748B !important;
 }
 
+body.studio .settings-card {
+  width: min(420px, calc(100vw - 28px));
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  align-items: stretch;
+  text-align: left;
+  padding: 18px 16px max(18px, env(safe-area-inset-bottom));
+  gap: 10px;
+}
+
+body.studio .settings-header,
+body.studio .settings-section,
+body.studio .settings-guide,
+body.studio .settings-actions,
+body.studio .settings-update-btn,
+body.studio .settings-version {
+  width: 100%;
+}
+
+body.studio .settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+body.studio .settings-actions .btn,
+body.studio .settings-update-btn {
+  width: 100%;
+  min-height: 46px;
+}
+
+body.studio .settings-guide {
+  background: #F7F9FC;
+  border: 1px solid #E3E8F0;
+  border-radius: 14px;
+  padding: 12px 12px 4px;
+}
+
+body.studio .guide-list,
+body.studio .setting-name,
+body.studio .setting-desc,
+body.studio .guide-title {
+  color: #1A2744;
+  text-align: left;
+}
+
 body.studio .settings-version {
   text-align: center;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   margin: 2px 0 8px;
+  color: #64748B;
 }
 
 body.studio .rank-chip,
