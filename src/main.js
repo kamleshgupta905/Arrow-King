@@ -19,6 +19,9 @@ import { VictoryModal } from './ui/VictoryModal.js';
 import { CompleteModal } from './ui/CompleteModal.js';
 import { SettingsModal } from './ui/SettingsModal.js';
 import { soundManager } from './audio/SoundManager.js';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { adManager } from './services/AdManager.js';
+import { updateManager } from './services/UpdateManager.js';
 
 class GameApp {
   constructor() {
@@ -58,6 +61,17 @@ class GameApp {
 
     // Initialize UI
     this.initUI();
+
+    // Dismiss native splash screen smoothly now that web DOM & canvas are ready
+    try {
+      SplashScreen.hide({ fadeOutDuration: 400 });
+    } catch (_) {}
+
+    // Initialize Services: AdMob & Auto-Update Check
+    try {
+      adManager.initialize();
+      updateManager.checkForUpdates();
+    } catch (_) {}
 
     // Trigger Animated Opening Splash Screen with Royal Chime
     this.triggerSplashAnimation();
@@ -201,6 +215,7 @@ class GameApp {
 
   showIntro() {
     soundManager.stopMusic();
+    try { adManager.showBanner(); } catch (_) {}
     this.intro.show();
     this.complexitySelect.hide();
     this.levelSelect.hide();
@@ -213,6 +228,7 @@ class GameApp {
 
   showComplexitySelect() {
     soundManager.stopMusic();
+    try { adManager.showBanner(); } catch (_) {}
     this.intro.hide();
     this.levelSelect.hide();
     this.hud.hide();
@@ -225,6 +241,7 @@ class GameApp {
 
   showLevelSelect(categoryOrNum) {
     soundManager.stopMusic();
+    try { adManager.showBanner(); } catch (_) {}
     const cat = (typeof categoryOrNum === 'string') ? categoryOrNum : (this.currentCategory || 'beginner');
     this.currentCategory = cat;
     this.intro.hide();
@@ -302,6 +319,9 @@ class GameApp {
     this.canvas.style.display = 'block';
     this.hud.show();
 
+    // Hide banner during puzzle to avoid accidental clicks and policy strikes
+    try { adManager.hideBanner(); } catch (_) {}
+
     soundManager.startMusic();
 
     this.renderer.resize();
@@ -352,6 +372,11 @@ class GameApp {
   }
 
   handleNextLevel() {
+    // Show interstitial with strict 90s cooldown & 3 levels interval to protect account
+    try {
+      adManager.showLevelCompleteInterstitial();
+    } catch (_) {}
+
     if (this.currentLevelNum >= 100) {
       // Completed all 100 levels in this category!
       const totalStars = Object.values(this.progress.stars).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
