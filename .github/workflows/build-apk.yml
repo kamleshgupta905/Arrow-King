@@ -2,7 +2,11 @@ name: Build Arrow King Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
+      - 'arena/**'
+      - arena/01a0d38e-arrow-king
   workflow_dispatch:
 
 permissions:
@@ -25,6 +29,10 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Read app version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Build Web Application
         run: npm run build
 
@@ -46,28 +54,33 @@ jobs:
           cd android
           ./gradlew assembleDebug --no-daemon --stacktrace
 
+      - name: Prepare release APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Arrow-King.apk
+
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ArrowKing-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: ArrowKing-v${{ steps.ver.outputs.version }}-APK
+          path: Arrow-King.apk
           retention-days: 30
 
       - name: Release APK on GitHub
         uses: softprops/action-gh-release@v2
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/arena/')
         with:
-          tag_name: v1.4.0
-          name: Arrow King v1.4.0 APK (Cinematic Opening + Apple Settings + 3D Motion)
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Arrow King v${{ steps.ver.outputs.version }} Premiere APK
+          make_latest: true
           body: |
-            👑 **Arrow King v1.4.0 - Official Android APK**
-            
-            - 🌟 Animated Cinematic Opening Reveal with 3D Orbit Rings & Metallic Sweep
-            - ⚙️ Apple-Grade Frosted Glass Settings Control Squircle with Rotating Spring Spin
-            - 🕹️ 3D Motion Physics & Interactive Tilt on Hero Emblem & Cards (ThreeUI / MotionSites style)
-            - 📱 Full Responsive Matrix for all phone aspect ratios, foldables & tablets
-            - 🛡️ Zero White Screen & Zero Default Capacitor Logo
-            - 💎 High-Earning AdMob Integration (Rewarded & Interstitial Cooldown)
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+            **Arrow King v${{ steps.ver.outputs.version }} — Premiere**
+
+            - Royal opening court, gold header, and animated splash
+            - Mode selector with house meters and continue seal
+            - Chamber score: choir, harp, and gold bells
+            - In-game flow combo and cleaner HUD
+            - Phone auto-update from this GitHub release (Arrow-King.apk)
+
+            Install the APK, allow unknown-app installs once, and the game will offer the next crown automatically.
+          files: Arrow-King.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

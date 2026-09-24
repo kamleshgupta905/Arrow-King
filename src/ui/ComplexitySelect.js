@@ -72,6 +72,7 @@ export class ComplexitySelect {
     const categoryMeta = {
       beginner: {
         num: '01',
+        bars: 1,
         tag: 'CASUAL FLOW',
         tagline: 'Gentle starter labyrinths & serene vector puzzles',
         accent: '#10b981',
@@ -87,6 +88,7 @@ export class ComplexitySelect {
       },
       intermediate: {
         num: '02',
+        bars: 2,
         tag: 'BALANCED BENDS',
         tagline: 'Intersecting curves, tricky turns & branching pathways',
         accent: '#f59e0b',
@@ -103,6 +105,7 @@ export class ComplexitySelect {
       },
       advanced: {
         num: '03',
+        bars: 3,
         tag: 'MEGA LABYRINTH',
         tagline: 'High-density vector mazes • 800+ arrow sequences',
         accent: '#f97316',
@@ -118,6 +121,7 @@ export class ComplexitySelect {
       },
       expert: {
         num: '04',
+        bars: 4,
         tag: 'HARDCORE LOGIC',
         tagline: 'Master complex topological mazes & precision escapes',
         accent: '#ef4444',
@@ -134,6 +138,7 @@ export class ComplexitySelect {
       },
       master: {
         num: '05',
+        bars: 5,
         tag: 'GRANDMASTER',
         tagline: 'The ultimate royal vector conquest for true puzzle elites',
         accent: '#a855f7',
@@ -151,6 +156,7 @@ export class ComplexitySelect {
       },
       hacker: {
         num: '06',
+        bars: 6,
         tag: 'SPEEDRUN BLITZ',
         tagline: 'Adrenaline rush • 850 arrows with strict countdown timer',
         accent: '#06b6d4',
@@ -164,33 +170,41 @@ export class ComplexitySelect {
       }
     };
 
+    const lastCat = this.progressData.lastCategory;
+    const recommendedId = CATEGORIES.some((c) => c.id === lastCat) ? lastCat : 'beginner';
+
     this.container.innerHTML = `
-      <div class="apple-complexity-screen">
-        <!-- Ambient Liquid Glow Backdrop -->
+      <div class="apple-complexity-screen premiere-modes">
         <div class="apple-screen-glow"></div>
 
-        <!-- Sleek iOS Navigation Header -->
-        <header class="apple-nav-header">
-          <button id="btn-complexity-back" class="apple-back-btn" aria-label="Back to Home">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <header class="apple-nav-header premiere-nav">
+          <button id="btn-complexity-back" class="apple-back-btn premiere-icon-btn" aria-label="Back to court">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
 
-          <div class="apple-header-title-wrap">
-            <span class="apple-header-eyebrow">MISSION SELECT</span>
-            <h1 class="apple-header-title">CHOOSE DIFFICULTY</h1>
+          <div class="apple-header-title-wrap premiere-nav-copy">
+            <span class="apple-header-eyebrow premiere-kicker">SIX ROYAL HOUSES</span>
+            <h1 class="apple-header-title">Select Mode</h1>
           </div>
 
           <div class="apple-stars-pill">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="#f0d78c" stroke="#c6a15a" stroke-width="1.5">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
             <span class="apple-stars-text"><strong>${totalStars}</strong> / ${maxStars}</span>
           </div>
         </header>
 
-        <!-- Complexity Cards Scrollable List -->
+        <div class="mode-lede">
+          <span>600 courts</span>
+          <span class="dot">·</span>
+          <span>${totalStars} stars held</span>
+          <span class="dot">·</span>
+          <span>Choose a house</span>
+        </div>
+
         <main class="apple-cards-viewport">
           <div class="apple-cards-container">
             ${CATEGORIES.map((cat, idx) => {
@@ -202,13 +216,15 @@ export class ComplexitySelect {
               const catMaxStars = totalLevels * 3;
               const progressPercent = lockInfo.isLocked ? 0 : Math.min(100, Math.round(((currentUnlocked - 1) / totalLevels) * 100));
 
+              const recommended = !lockInfo.isLocked && cat.id === recommendedId;
               return `
-                <div class="apple-glass-card ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'} ${cat.id === 'hacker' ? 'card-hacker-style' : ''}"
+                <div class="apple-glass-card ${lockInfo.isLocked ? 'is-locked' : 'is-unlocked'} ${cat.id === 'hacker' ? 'card-hacker-style' : ''} ${recommended ? 'is-recommended' : ''}"
                      data-cat="${cat.id}"
                      style="--card-accent: ${meta.accent}; --card-glow: ${meta.glow}; --card-idx: ${idx};">
 
-                  <!-- Card Specular Highlight Edge -->
+                  <div class="card-sheen"></div>
                   <div class="apple-card-specular"></div>
+                  ${recommended ? '<div class="mode-recommend">CONTINUE</div>' : ''}
 
                   <div class="apple-card-main-content">
                     <!-- Top Info Row: Icon Jewel + Title Stack + Badge -->
@@ -224,7 +240,10 @@ export class ComplexitySelect {
                             <span class="apple-mode-dot">•</span>
                             <span class="apple-mode-subtag">${meta.tag}</span>
                           </div>
-                          <h2 class="apple-mode-heading">${cat.name.toUpperCase()}</h2>
+                          <h2 class="apple-mode-heading">${cat.name}</h2>
+                          <div class="mode-meter" aria-hidden="true">
+                            ${Array.from({ length: 6 }, (_, i) => `<i class="${i < (meta.bars || 1) ? 'on' : ''}"></i>`).join('')}
+                          </div>
                         </div>
                       </div>
 

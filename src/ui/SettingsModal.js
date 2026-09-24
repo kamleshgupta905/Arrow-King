@@ -4,6 +4,7 @@
  */
 
 import { soundManager } from '../audio/SoundManager.js';
+import { updateManager, APP_VERSION } from '../services/UpdateManager.js';
 
 export class SettingsModal {
   constructor(container, callbacks) {
@@ -38,8 +39,8 @@ export class SettingsModal {
 
             <div class="setting-row">
               <div class="setting-info">
-                <span class="setting-name">Ambient Synth Music</span>
-                <span class="setting-desc">Relaxing generative neon chords</span>
+                <span class="setting-name">Royal Court Score</span>
+                <span class="setting-desc">Choir, harp, and gold bells</span>
               </div>
               <button id="toggle-music" class="toggle-btn ${soundManager.musicEnabled ? 'on' : 'off'}">
                 <span class="toggle-track">
@@ -58,6 +59,9 @@ export class SettingsModal {
               <li>Use <strong>Hint</strong> or <strong>Undo</strong> whenever needed.</li>
             </ul>
           </div>
+
+          <button id="btn-check-update" class="btn btn-secondary settings-update-btn">CHECK FOR UPDATE · v${APP_VERSION}</button>
+          <div id="update-status"></div>
 
           <div class="settings-actions">
             <button id="btn-settings-resume" class="btn btn-primary">RESUME</button>
@@ -102,6 +106,15 @@ export class SettingsModal {
       soundManager.playTap();
       this.hide();
       if (this.callbacks.onRestart) this.callbacks.onRestart();
+    });
+
+    this.container.querySelector('#btn-check-update')?.addEventListener('click', () => {
+      soundManager.playTap();
+      const status = this.container.querySelector('#update-status');
+      if (status) status.textContent = 'Asking the court…';
+      updateManager.checkForUpdates({ manual: true }).finally(() => {
+        if (status) status.textContent = '';
+      });
     });
 
     this.container.querySelector('#btn-settings-levels')?.addEventListener('click', () => {

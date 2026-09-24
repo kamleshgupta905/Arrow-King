@@ -141,10 +141,9 @@ export class Renderer {
     this.boardW = boardW;
     this.boardH = boardH;
 
-    // Safe clearance margins:
-    // Clear top HUD (~92px) and bottom action buttons (~92px)
-    const topInset = 92;
-    const bottomInset = 92;
+    // Clear the premiere header + star/path capsule, and the bottom dock.
+    const topInset = 136;
+    const bottomInset = 108;
     const sideInset = 28;
 
     const availableW = Math.max(80, this.width - sideInset * 2);

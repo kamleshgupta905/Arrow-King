@@ -115,8 +115,8 @@ export class VictoryModal {
     // If level 50, update next button text to "GRAND FINALE"
     const nextBtn = this.container.querySelector('#btn-vic-next span');
     if (nextBtn) {
-      if (result.levelNumber >= 50) {
-        nextBtn.textContent = 'GRAND FINALE!';
+      if (result.levelNumber >= 100) {
+        nextBtn.textContent = 'FINISH HOUSE';
       } else {
         nextBtn.textContent = 'NEXT LEVEL';
       }

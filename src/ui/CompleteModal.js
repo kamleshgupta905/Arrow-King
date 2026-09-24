@@ -28,10 +28,10 @@ export class CompleteModal {
             </svg>
           </div>
 
-          <div class="complete-ribbon">MASTER CONQUEROR</div>
-          <h1 class="complete-title">ALL 50 LEVELS COMPLETE!</h1>
+          <div class="complete-ribbon">HOUSE CONQUERED</div>
+          <h1 class="complete-title">100 COURTS CLEARED</h1>
           <p class="complete-desc">
-            You have mastered every maze, guided every arrow, and forged all 50 vector constellations!
+            This royal house is yours. Every arrow found its path, and the crown remembers your name.
           </p>
 
           <div class="complete-stats-row">
@@ -40,7 +40,7 @@ export class CompleteModal {
               <span class="comp-stat-lbl">STARS EARNED</span>
             </div>
             <div class="complete-stat-pill">
-              <span class="comp-stat-val">50 / 50</span>
+              <span class="comp-stat-val">100 / 100</span>
               <span class="comp-stat-lbl">SHAPES BUILT</span>
             </div>
             <div class="complete-stat-pill">

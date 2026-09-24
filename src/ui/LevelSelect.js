@@ -39,17 +39,17 @@ export class LevelSelect {
     const cat = CATEGORIES.find(c => c.id === this.activeCategory) || CATEGORIES[0];
     const catStars = this.calculateCategoryStars(starsMap, this.activeCategory);
     const catMaxStars = (cat.levelsCount || 30) * 3;
-    const catIcon = {
-      beginner: '🟢',
-      intermediate: '🟡',
-      advanced: '🟠',
-      expert: '🔴',
-      master: '🟣',
-      hacker: '⚡'
-    }[cat.id] || '🔹';
+    const gem = {
+      beginner: '#10b981',
+      intermediate: '#f59e0b',
+      advanced: '#f97316',
+      expert: '#ef4444',
+      master: '#c084fc',
+      hacker: '#38bdf8'
+    }[cat.id] || '#f0d78c';
 
     this.container.innerHTML = `
-      <div class="level-select-screen royal-theme">
+      <div class="level-select-screen royal-theme premiere-level">
         <header class="level-select-header">
           <button id="btn-ls-back" class="icon-btn-royal" aria-label="Back to Difficulty">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -58,7 +58,7 @@ export class LevelSelect {
           </button>
           <div class="header-center-royal">
             <div class="ls-cat-badge">
-              <span class="ls-cat-icon">${catIcon}</span>
+              <span class="ls-gem" style="background:${gem}; color:${gem}"></span>
               <h2 class="ls-title">${cat.name.toUpperCase()}</h2>
             </div>
             <div class="ls-progress-badge">

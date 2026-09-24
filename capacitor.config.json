@@ -7,11 +7,14 @@
     "SplashScreen": {
       "launchShowDuration": 3000,
       "launchAutoHide": false,
-      "backgroundColor": "#080b16",
+      "backgroundColor": "#07080e",
       "androidSplashResourceName": "splash",
       "showSpinner": false,
       "splashFullScreen": true,
       "splashImmersive": true
+    },
+    "CapacitorHttp": {
+      "enabled": true
     }
   }
 }

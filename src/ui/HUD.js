@@ -16,45 +16,44 @@ export class HUD {
 
   render() {
     this.container.innerHTML = `
-      <div class="game-hud photo-hud">
-        <header class="hud-top">
-          <button id="btn-hud-back" class="hud-icon-btn" title="Level Select">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+      <div class="game-hud photo-hud premiere-hud">
+        <header class="hud-top premiere-hud-top">
+          <button id="btn-hud-back" class="hud-icon-btn" title="Level Select" aria-label="Back">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
 
           <div class="hud-title-card">
-            <div class="hud-level-label"><span id="hud-category-label">BEGINNER</span> • LEVEL <span id="hud-level-num">1</span></div>
+            <div class="hud-level-label"><span id="hud-category-label">BEGINNER</span> · LV <span id="hud-level-num">1</span></div>
             <div class="hud-shape-name" id="hud-shape-name">TRIANGLE</div>
-            <div class="hud-paths-badge" id="hud-paths-badge" title="Currently open escape paths">
-              <span class="hud-paths-dot"></span>
-              <span id="hud-paths-text">2 PATHS OPEN</span>
-            </div>
           </div>
 
-          <!-- Countdown Timer for Hacker Mode -->
-          <div class="hud-timer-badge" id="hud-timer-badge" style="display: none;" title="Time Remaining">
-            <span class="hud-timer-icon">⏱</span>
-            <span class="hud-timer-val" id="hud-timer-val">00:30</span>
-          </div>
-
-          <!-- 3 Stars Display (1 wrong move = 1 star removed) -->
-          <div class="hud-stars-box" id="hud-stars-box" title="Remaining Stars / Lives">
-            <span class="hud-star active" id="hud-star-1">★</span>
-            <span class="hud-star active" id="hud-star-2">★</span>
-            <span class="hud-star active" id="hud-star-3">★</span>
-          </div>
-
-          <button id="btn-hud-pause" class="hud-icon-btn" title="Settings">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <button id="btn-hud-pause" class="hud-icon-btn" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
           </button>
         </header>
 
-        <!-- Notification banner on out of stars / restart -->
+        <div class="hud-meta-float">
+          <div class="hud-stars-box" id="hud-stars-box" title="Remaining stars">
+            <span class="hud-star active" id="hud-star-1">★</span>
+            <span class="hud-star active" id="hud-star-2">★</span>
+            <span class="hud-star active" id="hud-star-3">★</span>
+          </div>
+          <div class="hud-paths-badge" id="hud-paths-badge" title="Open escape paths">
+            <span class="hud-paths-dot"></span>
+            <span id="hud-paths-text">2 PATHS OPEN</span>
+          </div>
+          <div class="hud-timer-badge" id="hud-timer-badge" style="display: none;" title="Time remaining">
+            <span class="hud-timer-val" id="hud-timer-val">00:30</span>
+          </div>
+        </div>
+
+        <div class="hud-combo" id="hud-combo" aria-live="polite"></div>
+
         <div class="hud-toast-banner" id="hud-toast-banner" style="display: none;"></div>
 
         <footer class="hud-bottom-controls photo-controls">
@@ -219,8 +218,28 @@ export class HUD {
     }
   }
 
+  showCombo(count) {
+    const el = this.container.querySelector('#hud-combo');
+    if (!el) return;
+    if (!count || count < 2) {
+      el.classList.remove('show');
+      el.textContent = '';
+      return;
+    }
+    const titles = ['FLOW', 'ROYAL FLOW', 'KING FLOW', 'FLAWLESS'];
+    const title = titles[Math.min(titles.length - 1, count - 2)];
+    el.innerHTML = `<span>×${count}</span>${title}`;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+  }
+
   show() {
     this.container.style.display = 'block';
+    const hud = this.container.querySelector('.game-hud');
+    hud?.classList.remove('hud-enter');
+    if (hud) void hud.offsetWidth;
+    hud?.classList.add('hud-enter');
   }
 
   hide() {

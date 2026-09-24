@@ -37,6 +37,8 @@ export class Board {
     this.onRestartNotificationCallback = null;
     this.onCollisionImpactCallback = null;
     this.onTimerUpdateCallback = null;
+    this.onComboCallback = null;
+    this.flowCombo = 0;
   }
 
   loadLevel(levelData) {
@@ -71,6 +73,8 @@ export class Board {
     this.hoveredArrowId = null;
     this.stars = 3;
     this.wrongMoves = 0;
+    this.flowCombo = 0;
+    if (this.onComboCallback) this.onComboCallback(0);
     this.isTimed = !!levelData.isTimed;
     this.timeLimit = levelData.timeLimit || 0;
     this.timeRemaining = this.timeLimit;
@@ -245,6 +249,8 @@ export class Board {
       const prevStars = this.stars;
       this.wrongMoves++;
       this.stars = Math.max(0, 3 - this.wrongMoves);
+      this.flowCombo = 0;
+      if (this.onComboCallback) this.onComboCallback(0);
 
       if (this.onStarChangeCallback) {
         this.onStarChangeCallback(this.stars, this.stars < prevStars);
